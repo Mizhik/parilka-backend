@@ -18,7 +18,6 @@ product_attribute_association = Table(
 class Product(Base):
     __tablename__ = "products"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(50), nullable=False)
     description: Mapped[str] = mapped_column(String(255), nullable=False)
     price: Mapped[DECIMAL] = mapped_column(DECIMAL(precision=10, scale=2), nullable=False)
@@ -35,21 +34,21 @@ class Product(Base):
     category_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("categories.id", ondelete="CASCADE"),
-        nullable=True
+        nullable=False
     )
     category: Mapped["Category"] = relationship("Category", back_populates="products")
 
     country_of_origin_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("countries.id", ondelete="CASCADE"),
-        nullable=True
+        nullable=False
     )
     country: Mapped["Country"] = relationship("Country", back_populates="products")
 
     manufacturer_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("manufacturers.id", ondelete="CASCADE"),
-        nullable=True
+        nullable=False
     )
     manufacturer: Mapped["Manufacturer"] = relationship("Manufacturer", back_populates="products")
 
@@ -62,11 +61,10 @@ class Product(Base):
 class Image(Base):
     __tablename__ = "images"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    image_url: Mapped[str] = mapped_column(String(500), nullable=True)
+    image_url: Mapped[str] = mapped_column(String(500), nullable=False)
     product_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
-        ForeignKey("products.id"),
+        ForeignKey("products.id", ondelete="CASCADE"),
         nullable=False
     )
 
@@ -78,9 +76,8 @@ class Image(Base):
 class Attribute(Base):
     __tablename__ = "attributes"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
-    value: Mapped[str] = mapped_column(String, nullable=True)
+    value: Mapped[str] = mapped_column(String, nullable=False)
 
     products: Mapped[list["Product"]] = relationship(
         secondary=product_attribute_association,
@@ -91,7 +88,6 @@ class Attribute(Base):
 class Category(Base):
     __tablename__ = "categories"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(50), nullable=False)
 
     products: Mapped[list["Product"]] = relationship(
@@ -105,7 +101,6 @@ class Category(Base):
 class Country(Base):
     __tablename__ = "countries"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
 
     product: Mapped[list["Product"]] = relationship(
@@ -119,12 +114,11 @@ class Country(Base):
 class Manufacturer(Base):
     __tablename__ = "manufacturers"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
 
     product: Mapped[list["Product"]] = relationship(
         "Product",
-        back_populates="manufactures",
+        back_populates="manufacturer",
         lazy="selectin",
         cascade="all, delete-orphan"
     )
