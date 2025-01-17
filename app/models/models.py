@@ -17,8 +17,8 @@ from app.models.base_model import Base
 product_attribute_association = Table(
     "product_attribute",
     Base.metadata,
-    Column("product_id", Integer, ForeignKey("products.id"), primary_key=True),
-    Column("attribute_id", Integer, ForeignKey("attributes.id"), primary_key=True),
+    Column("product_id", PGUUID(as_uuid=True), ForeignKey("products.id"), primary_key=True),
+    Column("attribute_id", PGUUID(as_uuid=True), ForeignKey("attributes.id"), primary_key=True),
 )
 
 
@@ -137,6 +137,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(150), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     phone_number: Mapped[str] = mapped_column(String(12), nullable=False, unique=True)
+    #TODO: delete role
     role: Mapped[Role] = mapped_column("role", Enum(Role), default=Role.USER)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
