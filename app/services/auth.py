@@ -38,6 +38,25 @@ class AuthService:
 
         return user
 
+    @staticmethod
+    async def get_current_user_for_refresh(
+        credentials: HTTPAuthorizationCredentials = Depends(security),
+        db: AsyncSession = Depends(get_db),
+    ):
+        token = credentials.credentials
+        id = await Auth.get_current_user_with_token_for_refresh(token)
+        user = await db.execute(select(User).where(User.id == id))
+        user = user.scalar_one_or_none()
+
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        return user
+
     async def get_user_by_email(self, email: str):
         return await self.repository.get_one(email=email)
 
@@ -64,7 +83,18 @@ class AuthService:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password"
             )
-        access_token = await Auth.create_access_token(data={"sub": user.email})
-        return {
-            "access_token": access_token,
-        }
+        access_token = await Auth.create_access_token(
+            data={"sub": str(user.id), "email": user.email}
+        )
+        refresh_token = await Auth.create_refresh_token(data={"sub": str(user.id)})
+        return {"access_token": access_token, "refresh_token": refresh_token}
+
+    async def logout(self, user: User):
+        user.refresh_token = None
+        await self.db.commit()
+
+    async def refresh(self, user: User):
+        access_token = await Auth.create_access_token(
+            data={"sub": str(user.id), "email": user.email}
+        )
+        return {"access_token": access_token}

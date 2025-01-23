@@ -21,6 +21,14 @@ async def login(
     return await auth_service.login(body)
 
 
+@router.post("/refresh", response_model=TokenSchema, response_model_exclude_none=True)
+async def refresh(
+    auth_service=Depends(get_user_service),
+    user=Depends(AuthService.get_current_user_for_refresh),
+):
+    return await auth_service.refresh(user)
+
+
 @router.get("/me", response_model=UserDetail)
 async def user_me(current_user: UserDetail = Depends(AuthService.get_current_user)):
     return current_user

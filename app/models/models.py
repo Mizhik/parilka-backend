@@ -11,14 +11,21 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
-from app.models.enums import Role, Status, Payment, Delivery
+from app.models.enums import Status, Payment, Delivery
 from app.models.base_model import Base
 
 product_attribute_association = Table(
     "product_attribute",
     Base.metadata,
-    Column("product_id", PGUUID(as_uuid=True), ForeignKey("products.id"), primary_key=True),
-    Column("attribute_id", PGUUID(as_uuid=True), ForeignKey("attributes.id"), primary_key=True),
+    Column(
+        "product_id", PGUUID(as_uuid=True), ForeignKey("products.id"), primary_key=True
+    ),
+    Column(
+        "attribute_id",
+        PGUUID(as_uuid=True),
+        ForeignKey("attributes.id"),
+        primary_key=True,
+    ),
 )
 
 
@@ -137,10 +144,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(150), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     phone_number: Mapped[str] = mapped_column(String(12), nullable=False, unique=True)
-    #TODO: delete role
-    role: Mapped[Role] = mapped_column("role", Enum(Role), default=Role.USER)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-
     product_review: Mapped[list["ProductReview"]] = relationship(
         "ProductReview",
         back_populates="user",
@@ -199,7 +203,11 @@ class OrderItem(Base):
     order: Mapped["Order"] = relationship(
         "Order", back_populates="order_items", lazy="selectin"
     )
-    product_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    product_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("products.id", ondelete="CASCADE"),
+        nullable=False,
+    )
     product: Mapped["Product"] = relationship("Product", lazy="selectin")
 
 
@@ -213,7 +221,11 @@ class ProductReview(Base):
     )
     user: Mapped["User"] = relationship("User", back_populates="product_review")
 
-    product_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    product_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("products.id", ondelete="CASCADE"),
+        nullable=False,
+    )
     product: Mapped["Product"] = relationship("Product", lazy="selectin")
 
 

@@ -1,5 +1,4 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from app.models.enums import Role
 
 
 class UserSchema(BaseModel):
@@ -8,7 +7,6 @@ class UserSchema(BaseModel):
     email: EmailStr
     password: str
     phone_number: str
-    role: Role
 
     @field_validator("phone_number")
     def validate_phone(cls, p):
@@ -26,6 +24,7 @@ class UserLogin(BaseModel):
 
 class TokenSchema(BaseModel):
     access_token: str
+    refresh_token: str | None = None
     token_type: str = "bearer"
 
 
@@ -34,7 +33,6 @@ class UserDetail(BaseModel):
     last_name: str
     email: EmailStr
     phone_number: str
-    role: Role
 
     class Config:
         from_attributes = True
