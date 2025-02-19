@@ -1,28 +1,13 @@
 from uuid import UUID
 from decimal import Decimal
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List
 
-
-# Схеми для пов'язаних моделей
-class ImageSchema(BaseModel):
-    id: UUID
-    url: str
-
-
-class CategorySchema(BaseModel):
-    id: UUID
-    name: str
-
-
-class CountrySchema(BaseModel):
-    id: UUID
-    name: str
-
-
-class ManufacturerSchema(BaseModel):
-    id: UUID
-    name: str
+from app.schemas.image import ImageSchema
+from app.schemas.country import CountrySchema
+from app.schemas.manufacturer import ManufacturerSchema
+from app.schemas.category import CategorySchema
+from app.schemas.attribute import AttributeSchema
 
 
 class ProductBase(BaseModel):
@@ -31,14 +16,13 @@ class ProductBase(BaseModel):
     price: Decimal = Field(gt=0)
     stock_quantity: int = Field(ge=0)
     is_available: bool = Field(default=True)
-
-
-class ProductResponse(ProductBase):
-    id: UUID
+    is_popular: bool = Field(default=False)
+    is_new: bool = Field(default=True)
+    category_id: UUID
+    country_id: UUID
+    manufacturer_id: UUID
     images: List[ImageSchema] = []
-    category: CategorySchema
-    country: CountrySchema
-    manufacturer: ManufacturerSchema
+    attributes: List[AttributeSchema] = []
 
     class Config:
         from_attributes = True
