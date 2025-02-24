@@ -11,6 +11,7 @@ from app.schemas.attribute import AttributeSchema
 
 
 class ProductBase(BaseModel):
+    id: UUID
     title: str = Field(min_length=1, max_length=50)
     description: str = Field(min_length=1, max_length=255)
     price: Decimal = Field(gt=0)
