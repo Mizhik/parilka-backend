@@ -11,7 +11,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
-from app.models.enums import Status, Payment, Delivery
+from app.models.enums import Status, Payment as PaymentEnum, Delivery as DeliveryEnum
 from app.models.base_model import Base
 
 product_attribute_association = Table(
@@ -233,7 +233,7 @@ class ProductReview(Base):
 
 class Payment(Base):
     __tablename__ = "payments"
-    name: Mapped[Payment] = mapped_column("name", Enum(Payment), default=None)
+    name: Mapped[PaymentEnum] = mapped_column("name", Enum(PaymentEnum), default=None)
     order: Mapped["Order"] = relationship(
         "Order", back_populates="payment_method", lazy="selectin"
     )
@@ -241,7 +241,7 @@ class Payment(Base):
 
 class Delivery(Base):
     __tablename__ = "deliveries"
-    name: Mapped[Delivery] = mapped_column("name", Enum(Delivery), default=None)
+    name: Mapped[DeliveryEnum] = mapped_column("name", Enum(DeliveryEnum), default=None)
     order: Mapped["Order"] = relationship(
         "Order", back_populates="delivery_method", lazy="selectin"
     )

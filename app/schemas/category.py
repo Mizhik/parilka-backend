@@ -1,9 +1,10 @@
-from uuid import UUID
+from typing import Optional
+from uuid import UUID, uuid4
 from pydantic import BaseModel, Field
 
 
 class CategorySchema(BaseModel):
-    id: UUID
+    id: Optional[UUID] = Field(default_factory=uuid4)
     title: str = Field(max_length=50)
 
     class Config:
