@@ -1,9 +1,8 @@
 from typing import List 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.status import HTTP_400_BAD_REQUEST, HTTP_409_CONFLICT
+from starlette.status import HTTP_409_CONFLICT
 
-from app.models.models import Category
 from app.repository.category import CategoryRepository
 from app.schemas.category import CategorySchema
 from app.schemas.response import ResponseSchema
@@ -26,12 +25,10 @@ class CategoryService:
                 detail=f"Category with the name '{body.title}' already exists"
             )
 
-        if not body.title:
-            raise HTTPException(
-                HTTP_400_BAD_REQUEST,
-                detail="Category title cannot be empty"
-            )
         category = body.model_dump()
         res = await self.repository.create(category)
         category = CategorySchema.model_validate(res)
         return ResponseSchema[CategorySchema](data=category)
+    
+    async def edit(self, category_id: int, body: CategorySchema):
+        pass

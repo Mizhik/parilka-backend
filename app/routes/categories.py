@@ -17,7 +17,8 @@ async def get_categories(category_service: CategoryService = Depends(get_categor
 
 @router.post("/add", response_model=ResponseSchema[CategorySchema])
 async def create_category(body: CategorySchema, category_service: CategoryService = Depends(get_category_service)):
-    try:
-        return await category_service.create(body)
-    except HTTPException as e:
-        return JSONResponse(status_code=e.status_code, content=e.detail)
+    return await category_service.create(body)
+
+@router.patch("/edit/{category_id}", response_model=ResponseSchema[CategorySchema])
+async def edit_category(category_id: int, body: CategorySchema, category_service: CategoryService = Depends(get_category_service)):
+    return await category_service.edit(category_id, body)
