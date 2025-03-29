@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from uuid import UUID
+from fastapi import APIRouter, Body, Depends, HTTPException, Response
 from typing import List
 
 from fastapi.responses import JSONResponse
@@ -16,9 +17,22 @@ async def get_categories(category_service: CategoryService = Depends(get_categor
     return await category_service.get_all()
 
 @router.post("/add", response_model=ResponseSchema[CategorySchema])
-async def create_category(body: CategorySchema, category_service: CategoryService = Depends(get_category_service)):
+async def create_category(
+        body: CategorySchema = Body(..., example=CategorySchema(id=None, title="string")),
+        category_service: CategoryService = Depends(get_category_service)):
     return await category_service.create(body)
 
 @router.patch("/edit/{category_id}", response_model=ResponseSchema[CategorySchema])
-async def edit_category(category_id: int, body: CategorySchema, category_service: CategoryService = Depends(get_category_service)):
+async def edit_category(
+    category_id: UUID, 
+    body: CategorySchema = Body(..., example=CategorySchema(id=None, title="string")),
+    category_service: CategoryService = Depends(get_category_service)
+):
     return await category_service.edit(category_id, body)
+
+@router.delete("/delete/{category_id}", response_model=ResponseSchema[CategorySchema])
+async def delete_category(
+        category_id: UUID,
+        category_service: CategoryService = Depends(get_category_service)
+):
+    return await category_service.delete(category_id)
