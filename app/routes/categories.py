@@ -1,14 +1,12 @@
 from uuid import UUID
-from fastapi import APIRouter, Body, Depends, HTTPException, Response
+from fastapi import APIRouter, Body, Depends
 from typing import List
 
-from fastapi.responses import JSONResponse
 
 from app.schemas.category import CategorySchema
 from app.schemas.response import ResponseSchema
 from app.services.category import CategoryService
 from app.services.dependencies import get_category_service
-from app.services.errors import DuplicateError
 
 router = APIRouter(prefix="/categories", tags=["Categories"])
 

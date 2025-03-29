@@ -1,8 +1,6 @@
 from typing import List
 from uuid import UUID 
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.status import HTTP_404_NOT_FOUND, HTTP_409_CONFLICT
 
 from app.repository.category import CategoryRepository
 from app.schemas.category import CategorySchema
