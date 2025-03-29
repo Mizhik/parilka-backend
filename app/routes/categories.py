@@ -28,7 +28,7 @@ async def edit_category(
 ):
     return await category_service.edit(category_id, body)
 
-@router.delete("/delete/{category_id}", response_model=ResponseSchema[CategorySchema])
+@router.delete("/delete/{category_id}", response_model=ResponseSchema)
 async def delete_category(
         category_id: UUID,
         category_service: CategoryService = Depends(get_category_service)

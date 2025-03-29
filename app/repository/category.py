@@ -1,6 +1,6 @@
 from typing import Optional
 from uuid import UUID
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from app.models.models import Category
 from app.repository.base_repository import BaseRepository
 
@@ -21,3 +21,10 @@ class CategoryRepository(BaseRepository[Category]):
         if updated_category:
             await self.db.commit()
         return updated_category
+    
+    async def delete(self, category_id: UUID):
+        stmt = delete(self.model).where(self.model.id==category_id).returning(self.model)
+        result = await self.db.execute(stmt)
+        deleted_category = result.scalars().first()
+        if deleted_category:
+            await self.db.commit()

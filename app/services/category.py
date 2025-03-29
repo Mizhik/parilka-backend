@@ -16,7 +16,7 @@ class CategoryService:
     async def get_all(self):
         res = await self.repository.get_many()
         categories = [CategorySchema.model_validate(category) for category in res]
-        return ResponseSchema[List[CategorySchema]](data=categories, message="success")
+        return ResponseSchema[List[CategorySchema]](data=categories)
 
     async def create(self, body: CategorySchema):
         if await self.repository.get_by_title(body.title):
@@ -24,7 +24,7 @@ class CategoryService:
         category = body.model_dump()
         res = await self.repository.create(category)
         category_schema = CategorySchema.model_validate(res)
-        return ResponseSchema[CategorySchema](data=category_schema)
+        return ResponseSchema[CategorySchema](data=category_schema, message="Category created")
     
     async def edit(self, category_id: UUID, body: CategorySchema):
         if not await self.repository.get_one(id=category_id):
@@ -33,8 +33,12 @@ class CategoryService:
         category = body.model_dump(exclude_unset=True)
         res = await self.repository.update(category_id, category)
         category_schema = CategorySchema.model_validate(res)
-        return ResponseSchema[CategorySchema](data=category_schema)
+        return ResponseSchema[CategorySchema](data=category_schema, message="Category edited")
     
     async def delete(self, category_id: UUID):
         if not await self.repository.get_one(id=category_id):
             raise ErrorNotFound(f"Category with id: {category_id} does not exist")
+
+        await self.repository.delete(category_id)
+        return ResponseSchema(data=None, message="Category deleted")
+
