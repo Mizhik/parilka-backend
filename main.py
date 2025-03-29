@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.settings import config
 from app.routes import auth, categories, healthchecker, products
 from app.schemas.response import ResponseSchema
+from app.services.errors import BaseError
 
 app = FastAPI()
 
@@ -24,7 +25,7 @@ app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(categories.router)
 
-@app.exception_handler(HTTPException)
+@app.exception_handler(BaseError)
 async def exception_handler(req: Request, ex: HTTPException):
     content = ResponseSchema(message=ex.detail, data={
             "method": req.method,
