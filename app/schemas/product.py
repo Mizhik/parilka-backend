@@ -20,7 +20,7 @@ class ProductBase(BaseModel):
     is_popular: bool = Field(default=False)
     is_new: bool = Field(default=True)
     category_id: UUID
-    country_id: UUID
+    country_of_origin_id: UUID
     manufacturer_id: UUID
     images: List[ImageSchema] = []
     attributes: List[AttributeSchema] = []
