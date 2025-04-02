@@ -19,3 +19,13 @@ class Payment(Enum):
 class Delivery(Enum):
     NOVAPOSHTA = 'novaposhta'
     UKRPOSHTA = 'ukrposhta'
+
+class ConstructorType(str, Enum):
+    BANNER = 'banner'
+    BUTTON = 'button'
+    TEXT = 'text'
+
+class ConstructorTag(str, Enum):
+    TOP_BANNER = "top_banner"
+    BOTTOM_BANNER = "bottom_banner"
+    ACCORDION = "accordion"

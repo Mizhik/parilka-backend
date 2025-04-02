@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     AUTH_ALGORITHM: str = "algorithm"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    DOCS_USER: str = "user"
+    DOCS_PASSWORD: str = "password"
 
     @property
     def ASYNC_DATABASE_URL(self) -> str:
