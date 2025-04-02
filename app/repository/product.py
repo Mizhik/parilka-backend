@@ -18,4 +18,3 @@ class ProductRepository(BaseRepository):
             stmt = stmt.offset(offset).limit(limit)
         result = await self.db.execute(stmt)
         return result.scalars().all()
-
