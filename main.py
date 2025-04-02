@@ -51,11 +51,11 @@ def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
         raise LoginFailed()
     return credentials.username
 
-@app.get("/docs")
+@app.get("/docs", include_in_schema=False)
 async def get_docs(_: str = Depends(get_current_user)):
     return get_swagger_ui_html(openapi_url="/openapi.json", title="docs")
 
-@app.get("/openapi.json")
+@app.get("/openapi.json", include_in_schema=False)
 async def get_oapi(_: str = Depends(get_current_user)):
     return get_openapi(title = "FastAPI", version="0.1.0", routes=app.routes)
 
