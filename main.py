@@ -13,7 +13,7 @@ from app.routes import auth, categories, healthchecker, products
 from app.schemas.response import ResponseSchema
 from app.services.errors import BaseError, LoginFailed
 
-app = FastAPI(docs_url=None)
+app = FastAPI(docs_url=None, openapi_url=None, redoc_url=None)
 
 
 app.add_middleware(
