@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 from pydantic import BaseModel, Field, SerializeAsAny, fields
 
 from app.models.enums import ConstructorType, ConstructorTag
@@ -15,19 +15,16 @@ class LinkType(str, Enum):
     EXTERNAL = "external"
 
 class ConstructorComponent(BaseModel):
-    component_type: ConstructorType
-    model_config = {
-        "json_schema_extra": {
-            "discriminator": "component_type"
-        }
-    }
+    component_type: str
 
 class ConstructorTextBlock(ConstructorComponent):
+    component_type: Literal[ConstructorType.TEXT]
     is_heading: bool = False
     text: str = Field(min_length=1, description="Text is required")
     color: str = ""
 
 class ConstructorButton(ConstructorComponent):
+    component_type: Literal[ConstructorType.BUTTON]
     text: str = Field(min_length=1, description="Text is required")
     href: str = Field(min_length=1, description="Href is required")
     link_type: LinkType = LinkType.NAVIGATE
@@ -46,7 +43,7 @@ class ConstructorSchema(BaseModel):
     order: int = Field(default=1)
     type: ConstructorType
     tag: ConstructorTag
-    component_data: Union[ConstructorComponent, List[ConstructorComponent]]
+    component_data: Union[ConstructorButton, ConstructorTextBlock, List[Union[ConstructorButton, ConstructorTextBlock]]]
     model_config = {
         "from_attributes": True,
     }
