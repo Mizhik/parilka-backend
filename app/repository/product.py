@@ -1,6 +1,7 @@
 from typing import Optional
+from uuid import UUID
 
-from sqlalchemy.future import select
+from sqlalchemy import select, update, delete
 
 from app.models.models import Product
 from app.repository.base_repository import BaseRepository
@@ -18,3 +19,20 @@ class ProductRepository(BaseRepository):
             stmt = stmt.offset(offset).limit(limit)
         result = await self.db.execute(stmt)
         return result.scalars().all()
+
+    async def update(self, product_id: UUID, values: dict):
+        stmt = update(self.model).where(self.model.id==product_id).values(**values).returning(self.model)
+        result = await self.db.execute(stmt)
+        updated_product = result.scalars().first()
+        if updated_product:
+            await self.db.commit()
+        return updated_product
+
+    async def delete(self, product_id: UUID):
+        stmt = delete(self.model).where(self.model.id==product_id).returning(self.model)
+        result = await self.db.execute(stmt)
+        deleted_product = result.scalars().first()
+        if deleted_product:
+            await self.db.commit()
+            return deleted_product
+        return None
