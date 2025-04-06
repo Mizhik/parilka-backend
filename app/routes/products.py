@@ -1,13 +1,12 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends
 from typing import List, Optional
 
 from app.schemas.product import ProductSchema
 from app.schemas.response import ResponseSchema
 from app.services.dependencies import get_product_service
 from app.services.product import ProductService
-from app.schemas.response import ResponseSchema
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
