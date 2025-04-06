@@ -11,7 +11,6 @@ from app.schemas.attribute import AttributeSchema
 
 
 class ProductBase(BaseModel):
-    id: UUID
     title: str = Field(min_length=1, max_length=50)
     description: str = Field(min_length=1, max_length=255)
     price: Decimal = Field(gt=0)
@@ -22,8 +21,15 @@ class ProductBase(BaseModel):
     category_id: UUID
     country_of_origin_id: UUID
     manufacturer_id: UUID
+
+
+class ProductCreate(ProductBase):
     images: List[ImageSchema] = []
     attributes: List[AttributeSchema] = []
+
+
+class ProductResponse(ProductCreate):
+    id: UUID
 
     class Config:
         from_attributes = True
