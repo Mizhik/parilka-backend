@@ -4,10 +4,9 @@ from fastapi import APIRouter, Depends
 from typing import List, Optional
 
 from app.schemas.product import ProductBase, ProductResponse, ProductCreate
-from app.repository.product import ProductRepository
 from app.services.dependencies import get_product_service
 from app.services.product import ProductService
-
+from app.schemas.response import ResponseSchema
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
