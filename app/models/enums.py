@@ -27,5 +27,4 @@ class ConstructorType(str, Enum):
 
 class ConstructorTag(str, Enum):
     TOP_BANNER = "top_banner"
-    BOTTOM_BANNER = "bottom_banner"
     ACCORDION = "accordion"

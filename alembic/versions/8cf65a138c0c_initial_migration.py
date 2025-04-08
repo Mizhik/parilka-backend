@@ -36,7 +36,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('constructor',
-    sa.Column('tag', sa.Enum('TOP_BANNER', 'BOTTOM_BANNER', 'ACCORDION', name='constructortag'), nullable=False),
+    sa.Column('tag', sa.Enum('TOP_BANNER', 'ACCORDION', name='constructortag'), nullable=False),
     sa.Column('component_data', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('create_at', sa.DateTime(), nullable=False),

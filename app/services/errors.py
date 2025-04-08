@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from starlette.status import HTTP_404_NOT_FOUND, HTTP_409_CONFLICT
+from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_409_CONFLICT
 
 class BaseError(HTTPException):
     def __init__(self, message: str = "An error occured"):
@@ -27,4 +27,9 @@ class UserForbidden(HTTPException):
 class DuplicateError(BaseError):
     def __init__(self, message: str = "Found duplicate"):
         self.status_code = HTTP_409_CONFLICT
+        super().__init__(message)
+
+class BadRequestError(BaseError):
+    def __init__(self, message: str = "Bad request"):
+        self.status_code = HTTP_400_BAD_REQUEST
         super().__init__(message)
