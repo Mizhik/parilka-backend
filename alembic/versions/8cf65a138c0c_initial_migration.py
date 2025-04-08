@@ -1,18 +1,18 @@
 """Initial migration
 
-Revision ID: 2d798b756d61
+Revision ID: 8cf65a138c0c
 Revises: 
-Create Date: 2025-03-21 14:09:21.773587
+Create Date: 2025-04-08 11:23:16.025940
 
 """
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '2d798b756d61'
+revision: str = '8cf65a138c0c'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -34,6 +34,15 @@ def upgrade() -> None:
     sa.Column('create_at', sa.DateTime(), nullable=False),
     sa.Column('update_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('constructor',
+    sa.Column('tag', sa.Enum('TOP_BANNER', 'BOTTOM_BANNER', 'ACCORDION', name='constructortag'), nullable=False),
+    sa.Column('component_data', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('create_at', sa.DateTime(), nullable=False),
+    sa.Column('update_at', sa.DateTime(), nullable=False),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('tag')
     )
     op.create_table('countries',
     sa.Column('name', sa.String(length=50), nullable=False),
@@ -166,6 +175,7 @@ def downgrade() -> None:
     op.drop_table('manufacturers')
     op.drop_table('deliveries')
     op.drop_table('countries')
+    op.drop_table('constructor')
     op.drop_table('categories')
     op.drop_table('attributes')
     # ### end Alembic commands ###

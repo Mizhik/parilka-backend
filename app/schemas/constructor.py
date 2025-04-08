@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import Enum, unique
 from typing import List, Literal, Optional, Union
-from pydantic import BaseModel, Field, SerializeAsAny, fields
+from pydantic import BaseModel, Field, SerializeAsAny, field_validator, fields, validator
 
 from app.models.enums import ConstructorType, ConstructorTag
 from app.schemas.response import ResponseSchema
@@ -16,6 +16,7 @@ class LinkType(str, Enum):
 
 class ConstructorComponent(BaseModel):
     component_type: str
+    order: int = Field()
 
 class ConstructorTextBlock(ConstructorComponent):
     component_type: Literal[ConstructorType.TEXT]
@@ -40,20 +41,25 @@ class ConstructorBannerPhoto(ConstructorPhoto):
     components: Optional[List[ConstructorComponent]]
 
 class ConstructorSchema(BaseModel):
-    order: int = Field(default=1)
-    type: ConstructorType
     tag: ConstructorTag
-    component_data: Union[ConstructorButton, ConstructorTextBlock, List[Union[ConstructorButton, ConstructorTextBlock]]]
+    component_data: List[Union[ConstructorButton, ConstructorTextBlock]]
     model_config = {
         "from_attributes": True,
     }
 
+    @field_validator("component_data")
+    @classmethod
+    def no_order_duplicates(cls, components):
+        if components is None:
+            return components
+        orders = [component.order for component in components]
+        if len(orders) != (len(set(orders))):
+            raise ValueError("Duplicate 'order' values found in component data")
+        return components
+
 
 class ConstructorResponseSchema(ResponseSchema):
     data: dict[
-    ConstructorTag,
-    Union[
-            Optional[ConstructorSchema],
-            List[ConstructorSchema]
-        ]
+        ConstructorTag,
+        Optional[ConstructorSchema]
     ]

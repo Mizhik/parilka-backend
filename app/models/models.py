@@ -247,8 +247,6 @@ class Delivery(Base):
     )
 
 class Constructor(Base):
-    __tablename__ = "_constructor"
-    order: Mapped[int] = mapped_column("order", Integer, nullable=False)
-    tag: Mapped[ConstructorTag] = mapped_column("tag", Enum(ConstructorTag), nullable=False)
-    type: Mapped[ConstructorEnum] = mapped_column("constructor_type", Enum(ConstructorEnum), default=None)
+    __tablename__ = "constructor"
+    tag: Mapped[ConstructorTag] = mapped_column("tag", Enum(ConstructorTag), nullable=False, unique=True)
     component_data: Mapped[JSONB] = mapped_column("component_data", JSONB, nullable=False)

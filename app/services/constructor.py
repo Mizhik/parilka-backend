@@ -16,10 +16,11 @@ class ConstructorService:
 
     async def get_all(self):
         res = await self.repository.get_many()
+        print(res)
         constructors = {
-            ConstructorTag.TOP_BANNER: None,
+            ConstructorTag.TOP_BANNER: next((item for item in res if item.tag == ConstructorTag.TOP_BANNER), None),
             ConstructorTag.BOTTOM_BANNER: None,
-            ConstructorTag.ACCORDION: []
+            ConstructorTag.ACCORDION: None
         }
 
         return ConstructorResponseSchema(data=constructors)
