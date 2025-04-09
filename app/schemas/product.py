@@ -1,7 +1,7 @@
 from uuid import UUID
 from decimal import Decimal
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 from app.schemas.image import ImageSchema
 from app.schemas.country import CountrySchema
@@ -10,26 +10,20 @@ from app.schemas.category import CategorySchema
 from app.schemas.attribute import AttributeSchema
 
 
-class ProductBase(BaseModel):
+class ProductSchema(BaseModel):
+    id: Optional[UUID] = None
     title: str = Field(min_length=1, max_length=50)
     description: str = Field(min_length=1, max_length=255)
     price: Decimal = Field(gt=0)
     stock_quantity: int = Field(ge=0)
     is_available: bool = Field(default=True)
     is_popular: bool = Field(default=False)
-    is_new: bool = Field(default=True)
+    is_new: bool = Field(default=False)
     category_id: UUID
-    country_of_origin_id: UUID
+    country_id: UUID
     manufacturer_id: UUID
-
-
-class ProductCreate(ProductBase):
     images: List[ImageSchema] = []
     attributes: List[AttributeSchema] = []
-
-
-class ProductResponse(ProductCreate):
-    id: UUID
 
     class Config:
         from_attributes = True

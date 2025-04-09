@@ -1,9 +1,10 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Body
 from typing import List, Optional
 
-from app.schemas.product import ProductBase, ProductResponse, ProductCreate
+from app.schemas.product import ProductSchema
+from app.schemas.response import ResponseSchema
 from app.services.dependencies import get_product_service
 from app.services.product import ProductService
 from app.schemas.response import ResponseSchema
@@ -11,7 +12,7 @@ from app.schemas.response import ResponseSchema
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
-@router.get("/popular", response_model=List[ProductResponse])
+@router.get("/popular", response_model=List[ProductSchema])
 async def get_popular_products(
     offset: Optional[int] = None,
     limit: Optional[int] = None,
@@ -20,50 +21,43 @@ async def get_popular_products(
     return await product_service.get_popular_products(offset=offset, limit=limit)
 
 
-@router.get("", response_model=List[ProductResponse])
+@router.get("", response_model=List[ProductSchema])
 async def get_products(
     offset: Optional[int] = None,
     limit: Optional[int] = None,
     product_service: ProductService = Depends(get_product_service)
 ):
-    return await product_service.get_all_product(offset=offset, limit=limit)
+    return await product_service.get_all_products(offset=offset, limit=limit)
 
 
-@router.get("/{product_id}", response_model=ProductResponse)
+@router.get("/{product_id}", response_model=ResponseSchema[ProductSchema])
 async def get_product(
-        product_id:UUID,
+        product_id: UUID,
         product_service: ProductService = Depends(get_product_service)
 ):
     return await product_service.get_one_product(product_id)
 
 
-@router.post("/add", response_model=ProductResponse)
+@router.post("/add", response_model=ResponseSchema[ProductSchema])
 async def create(
-        body: ProductCreate,
+        body: ProductSchema,
         product_service: ProductService = Depends(get_product_service)
 ):
-    created_product = await product_service.create_product(body)
-    return created_product
+    return await product_service.create_product(body)
 
 
-@router.patch("/edit/{product_id}", response_model=ProductResponse)
+@router.patch("/edit/{product_id}", response_model=ResponseSchema[ProductSchema])
 async def edit(
         product_id: UUID,
-        body: ProductBase,
+        body: ProductSchema,
         product_service: ProductService = Depends(get_product_service)
 ):
-    edited_product = await product_service.edit_product(product_id, body)
-    return edited_product
+    return await product_service.edit_product(product_id, body)
 
 
-@router.delete("delete/{product_id}", response_model=ResponseSchema[ProductResponse])
+@router.delete("/delete/{product_id}", response_model=ResponseSchema)
 async def delete(
         product_id: UUID,
         product_service: ProductService = Depends(get_product_service)
 ):
-    deleted_product = await product_service.delete_product(product_id)
-
-    return ResponseSchema[ProductResponse](
-        message=f"Продукт {deleted_product.title} успішно видалено.",
-        data=[]
-    )
+    return await product_service.delete_product(product_id)

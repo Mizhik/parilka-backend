@@ -2,9 +2,10 @@ from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import select, update, delete
+from sqlalchemy.orm import selectinload
 
 from app.models.models import Product
-from app.repository.base_repository import BaseRepository
+from app.repository.base_repository import BaseRepository, ModelType
 
 
 class ProductRepository(BaseRepository):
@@ -14,9 +15,28 @@ class ProductRepository(BaseRepository):
     async def get_popular(
         self, offset: Optional[int] = None, limit: Optional[int] = None
     ):
-        stmt = select(self.model).where(self.model.is_popular.is_(True))
+        stmt = (select(self.model)
+                .where(self.model.is_popular.is_(True))
+                .options(selectinload(self.model.images), selectinload(self.model.attributes))
+                )
         if offset is not None and limit is not None:
             stmt = stmt.offset(offset).limit(limit)
+        result = await self.db.execute(stmt)
+        return result.scalars().all()
+
+    async def get_many(
+        self, offset: Optional[int] = None, limit: Optional[int] = None
+    ) -> list[ModelType]:
+        stmt = select(self.model).options(
+            selectinload(self.model.images),
+            selectinload(self.model.attributes)
+        )
+
+        if offset is not None:
+            stmt = stmt.offset(offset)
+        if limit is not None:
+            stmt = stmt.limit(limit)
+
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
