@@ -40,12 +40,40 @@ class ProductRepository(BaseRepository):
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
-    async def update(self, product_id: UUID, values: dict):
-        stmt = update(self.model).where(self.model.id==product_id).values(**values).returning(self.model)
+    async def get_one(self, product_id: UUID) -> ModelType:
+        query = (select(self.model)
+                 .where(self.model.id==product_id)
+                 .options(selectinload(self.model.images), selectinload(self.model.attributes))
+                 )
+        result = await self.db.execute(query)
+        db_row = result.unique().scalar_one_or_none()
+        return db_row
+
+    async def get_with_relations_by_id(self, obj_id: UUID) -> ModelType:
+        stmt = (
+            select(self.model)
+            .options(
+                selectinload(self.model.images),
+                selectinload(self.model.attributes),
+                selectinload(self.model.category),
+                selectinload(self.model.country),
+                selectinload(self.model.manufacturer),
+            )
+            .where(self.model.id == obj_id)
+        )
         result = await self.db.execute(stmt)
-        updated_product = result.scalars().first()
-        if updated_product:
-            await self.db.commit()
+        return result.scalar_one_or_none()
+
+    async def update(self, product_id: UUID, values: dict):
+        stmt = (
+            update(self.model)
+            .where(self.model.id == product_id)
+            .values(**values)
+        )
+        await self.db.execute(stmt)
+        await self.db.commit()
+
+        updated_product = await self.get_with_relations_by_id(product_id)
         return updated_product
 
     async def delete(self, product_id: UUID):

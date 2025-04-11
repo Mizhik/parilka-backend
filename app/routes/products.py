@@ -12,7 +12,7 @@ from app.schemas.response import ResponseSchema
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
-@router.get("/popular", response_model=List[ProductSchema])
+@router.get("/popular", response_model=ResponseSchema[List[ProductSchema]])
 async def get_popular_products(
     offset: Optional[int] = None,
     limit: Optional[int] = None,
@@ -21,7 +21,7 @@ async def get_popular_products(
     return await product_service.get_popular_products(offset=offset, limit=limit)
 
 
-@router.get("", response_model=List[ProductSchema])
+@router.get("", response_model=ResponseSchema[List[ProductSchema]])
 async def get_products(
     offset: Optional[int] = None,
     limit: Optional[int] = None,
@@ -35,7 +35,7 @@ async def get_product(
         product_id: UUID,
         product_service: ProductService = Depends(get_product_service)
 ):
-    return await product_service.get_one_product(product_id)
+    return await product_service.get_one_product(product_id=product_id)
 
 
 @router.post("/add", response_model=ResponseSchema[ProductSchema])

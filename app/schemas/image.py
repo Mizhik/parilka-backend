@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class ImageSchema(BaseModel):
     id: Optional[UUID] = None
-    url: str = Field(max_length=500)
+    image_url: str = Field(max_length=500)
     product_id: UUID
 
     class Config:
