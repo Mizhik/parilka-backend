@@ -10,8 +10,8 @@ from sqlalchemy import (
     Column,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
-from app.models.enums import Status, Payment, Delivery
+from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
+from app.models.enums import ConstructorTag, Status, Payment as PaymentEnum, Delivery as DeliveryEnum, ConstructorType as ConstructorEnum
 from app.models.base_model import Base
 
 product_attribute_association = Table(
@@ -39,6 +39,8 @@ class Product(Base):
     )
     stock_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_popular: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_new: Mapped[bool] = mapped_column(Boolean, default=False)
 
     images: Mapped[list["Image"]] = relationship(
         "Image", back_populates="product", cascade="all, delete-orphan", lazy="selectin"
@@ -231,7 +233,7 @@ class ProductReview(Base):
 
 class Payment(Base):
     __tablename__ = "payments"
-    name: Mapped[Payment] = mapped_column("name", Enum(Payment), default=None)
+    name: Mapped[PaymentEnum] = mapped_column("name", Enum(PaymentEnum), default=None)
     order: Mapped["Order"] = relationship(
         "Order", back_populates="payment_method", lazy="selectin"
     )
@@ -239,7 +241,12 @@ class Payment(Base):
 
 class Delivery(Base):
     __tablename__ = "deliveries"
-    name: Mapped[Delivery] = mapped_column("name", Enum(Delivery), default=None)
+    name: Mapped[DeliveryEnum] = mapped_column("name", Enum(DeliveryEnum), default=None)
     order: Mapped["Order"] = relationship(
         "Order", back_populates="delivery_method", lazy="selectin"
     )
+
+class Constructor(Base):
+    __tablename__ = "constructor"
+    tag: Mapped[ConstructorTag] = mapped_column("tag", Enum(ConstructorTag), nullable=False, unique=True)
+    component_data: Mapped[JSONB] = mapped_column("component_data", JSONB, nullable=False)

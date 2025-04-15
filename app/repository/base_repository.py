@@ -1,19 +1,16 @@
-from typing import TypeVar
-from uuid import UUID
+from typing import Generic, Type, TypeVar
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import DeclarativeMeta
 from typing import Optional, TypeVar
 
+from app.models.base_model import Base
 from app.services.errors import ErrorNotFound
 
 
-ModelType = TypeVar("ModelType", bound=DeclarativeMeta)
+ModelType = TypeVar("ModelType", bound=Base)
 
-
-class BaseRepository:
-
-    def __init__(self, model: ModelType, db: AsyncSession):
+class BaseRepository(Generic[ModelType]):
+    def __init__(self, model: Type[ModelType], db: AsyncSession):
         self.db = db
         self.model = model
 
@@ -24,15 +21,15 @@ class BaseRepository:
         if offset is not None and limit is not None:
             stmt = stmt.offset(offset).limit(limit)
         result = await self.db.execute(stmt)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
-    async def get_one(self, **params) -> ModelType:
+    async def get_one(self, **params) -> ModelType | None:
         query = select(self.model).filter_by(**params)
         result = await self.db.execute(query)
         db_row = result.unique().scalar_one_or_none()
         return db_row
 
-    async def create(self, body: dict) -> ModelType:
+    async def create(self, body: dict) -> ModelType | None:
         result = self.model(**body)
         self.db.add(result)
         await self.db.commit()

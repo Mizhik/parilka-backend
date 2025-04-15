@@ -1,0 +1,13 @@
+version: '3'
+services:
+  app:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`parilka-backend.bewebb.ee`)"
+      - "traefik.http.routers.app.entrypoints=websecure"
+      - "traefik.http.routers.app.tls.certresolver=myresolver"
+    networks:
+        - web
+networks:
+  web:
+    external: true
