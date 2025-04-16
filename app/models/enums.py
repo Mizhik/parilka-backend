@@ -24,6 +24,7 @@ class ConstructorType(str, Enum):
     BANNER = 'banner'
     BUTTON = 'button'
     TEXT = 'text'
+    BULLET_POINT = 'bullet_point'
 
 class ConstructorTag(str, Enum):
     TOP_BANNER = "top_banner"
