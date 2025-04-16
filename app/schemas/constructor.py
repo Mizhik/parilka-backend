@@ -30,7 +30,11 @@ class ConstructorButton(_ConstructorComponent):
     link_type: LinkType = LinkType.NAVIGATE
     is_new_page: bool = False
 
-ConstructorComponent = Union[ConstructorButton, ConstructorTextBlock]
+class ConstructorBulletPoint(_ConstructorComponent):
+    component_type: Literal[ConstructorType.BULLET_POINT]
+    bullet_points: List[ConstructorTextBlock]
+
+ConstructorComponent = Union[ConstructorButton, ConstructorTextBlock, ConstructorBulletPoint]
 
 class ConstructorSchema(BaseModel):
     tag: ConstructorTag
