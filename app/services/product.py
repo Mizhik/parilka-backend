@@ -1,10 +1,9 @@
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
 
+from app.models.models import Product
 from app.repository.product import ProductRepository
 from app.schemas.product import ProductSchema
 from app.schemas.response import ResponseSchema
@@ -18,7 +17,7 @@ class ProductService:
         self.repository = repository
 
     async def get_popular_products(self, offset: Optional[int] = None, limit: Optional[int] = None):
-        products = await self.repository.get_popular(offset, limit)
+        products = await self.repository.get_many(offset=offset, limit=limit, where=[Product.is_popular.is_(True)])
         products_schema = [map_product_to_schema(product) for product in products]
         return ResponseSchema(data=products_schema, message="Popular products")
 
@@ -40,20 +39,19 @@ class ProductService:
 
     async def create_product(self, body: ProductSchema):
         values = body.dict(exclude_unset=True)
+
         created_product = await self.repository.create(values)
 
-        full_product = await self.repository.get_with_relations_by_id(created_product.id)
-
-        product_schema = ProductSchema.model_validate(full_product)
+        product_schema = ProductSchema.model_validate(created_product)
 
         return ResponseSchema[ProductSchema](data=product_schema, message="Product created.")
 
     async def edit_product(self, product_id: UUID, body: ProductSchema):
-        if not await self.repository.get_one(product_id=product_id):
+        if not await self.repository.get_one(id=product_id):
             raise ErrorNotFound(f"Product with id: {product_id} does not exist.")
 
         values = body.dict(exclude_unset=True)
-        updated_product = await self.repository.update(product_id, values)
+        updated_product = await self.repository.update(values, id=product_id)
         product_schema = ProductSchema.model_validate(updated_product)
 
         return ResponseSchema[ProductSchema](data=product_schema, message="Product edited")
@@ -62,5 +60,5 @@ class ProductService:
         if not await self.repository.get_one(id=product_id):
             raise ErrorNotFound(f"Product with id: {product_id} does not exist.")
 
-        await self.repository.delete(product_id)
+        await self.repository.delete(id=product_id)
         return ResponseSchema(data=None, message="Product deleted")
