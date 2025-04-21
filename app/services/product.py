@@ -23,12 +23,12 @@ class ProductService:
         return ResponseSchema(data=products_schema, message="Popular products")
 
     async def get_all_products(self, offset: Optional[int] = None, limit: Optional[int] = None):
-        products = await self.repository.get_many(offset, limit)
+        products = await self.repository.get_many(offset=offset, limit=limit)
         products_schema = [map_product_to_schema(product) for product in products]
         return ResponseSchema(data=products_schema, message="All products")
 
     async def get_one_product(self, product_id: UUID):
-        product = await self.repository.get_one(product_id=product_id)
+        product = await self.repository.get_one(id=product_id)
         print(product, "32")
         if not product:
             raise ErrorNotFound(f"Product with id: {product_id} does not exist.")

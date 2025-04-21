@@ -39,7 +39,7 @@ class ConstructorService:
             raise BadRequestError(f"Duplicate 'order' found")
 
         components: List[Dict] = [c.model_dump() for c in body] 
-        res = await self.repository.update(constructor_tag, components)
+        res = await self.repository.update(components, tag=constructor_tag)
         constructor_schema = ConstructorSchema.model_validate(res)
         return ResponseSchema(data=constructor_schema, message="Constructor edited")
 

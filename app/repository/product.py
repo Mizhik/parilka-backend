@@ -1,8 +1,9 @@
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 from sqlalchemy import select, update, delete
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql.base import ExecutableOption
 
 from app.models.models import Product
 from app.repository.base_repository import BaseRepository, ModelType
@@ -10,44 +11,23 @@ from app.repository.base_repository import BaseRepository, ModelType
 
 class ProductRepository(BaseRepository):
     def __init__(self, db):
-        super().__init__(db=db, model=Product)
+        super().__init__(db=db,
+                         model=Product,
+                         lazyopts=[selectinload(Product.images), selectinload(Product.attributes)]
+                        )
+
 
     async def get_popular(
         self, offset: Optional[int] = None, limit: Optional[int] = None
     ):
         stmt = (select(self.model)
                 .where(self.model.is_popular.is_(True))
-                .options(selectinload(self.model.images), selectinload(self.model.attributes))
+                .options(*self.lazyopts)
                 )
         if offset is not None and limit is not None:
             stmt = stmt.offset(offset).limit(limit)
         result = await self.db.execute(stmt)
         return result.scalars().all()
-
-    async def get_many(
-        self, offset: Optional[int] = None, limit: Optional[int] = None
-    ) -> list[ModelType]:
-        stmt = select(self.model).options(
-            selectinload(self.model.images),
-            selectinload(self.model.attributes)
-        )
-
-        if offset is not None:
-            stmt = stmt.offset(offset)
-        if limit is not None:
-            stmt = stmt.limit(limit)
-
-        result = await self.db.execute(stmt)
-        return result.scalars().all()
-
-    async def get_one(self, product_id: UUID) -> ModelType:
-        query = (select(self.model)
-                 .where(self.model.id==product_id)
-                 .options(selectinload(self.model.images), selectinload(self.model.attributes))
-                 )
-        result = await self.db.execute(query)
-        db_row = result.unique().scalar_one_or_none()
-        return db_row
 
     async def get_with_relations_by_id(self, obj_id: UUID) -> ModelType:
         stmt = (
@@ -55,9 +35,6 @@ class ProductRepository(BaseRepository):
             .options(
                 selectinload(self.model.images),
                 selectinload(self.model.attributes),
-                selectinload(self.model.category),
-                selectinload(self.model.country),
-                selectinload(self.model.manufacturer),
             )
             .where(self.model.id == obj_id)
         )
