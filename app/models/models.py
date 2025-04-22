@@ -11,7 +11,12 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
-from app.models.enums import ConstructorTag, Status, Payment as PaymentEnum, Delivery as DeliveryEnum, ConstructorType as ConstructorEnum
+from app.models.enums import (ConstructorTag,
+                              Status,
+                              Payment as PaymentEnum,
+                              Delivery as DeliveryEnum,
+                              ConstructorType as ConstructorEnum,
+                              ProductStatus as StatusEnum)
 from app.models.base_model import Base
 
 product_attribute_association = Table(
@@ -39,8 +44,7 @@ class Product(Base):
     )
     stock_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
-    is_popular: Mapped[bool] = mapped_column(Boolean, default=False)
-    is_new: Mapped[bool] = mapped_column(Boolean, default=False)
+    status: Mapped[StatusEnum] = mapped_column("status", Enum(StatusEnum), default=StatusEnum.NONE)
 
     images: Mapped[list["Image"]] = relationship(
         "Image", back_populates="product", cascade="all, delete-orphan", lazy="selectin"
