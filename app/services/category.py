@@ -19,7 +19,7 @@ class CategoryService:
         return ResponseSchema[List[CategorySchema]](data=categories)
 
     async def create(self, body: CategorySchema):
-        if await self.repository.get_by_title(body.title):
+        if await self.repository.get_one(title=body.title):
             raise DuplicateError(f"Category with title: {body.title} already exists")
         category = body.model_dump()
         res = await self.repository.create(category)
@@ -31,7 +31,7 @@ class CategoryService:
             raise ErrorNotFound(f"Category with id: {category_id} does not exist")
 
         category = body.model_dump(exclude_unset=True)
-        res = await self.repository.update(category_id, category)
+        res = await self.repository.update(category, id=category_id)
         category_schema = CategorySchema.model_validate(res)
         return ResponseSchema[CategorySchema](data=category_schema, message="Category edited")
     
@@ -39,6 +39,6 @@ class CategoryService:
         if not await self.repository.get_one(id=category_id):
             raise ErrorNotFound(f"Category with id: {category_id} does not exist")
 
-        await self.repository.delete(category_id)
+        await self.repository.delete(id=category_id)
         return ResponseSchema(data=None, message="Category deleted")
 
