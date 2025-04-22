@@ -4,9 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.db import get_db
 from app.repository.category import CategoryRepository
 from app.repository.constructor import ConstructorRepository
+from app.repository.liquids import LiquidsRepository
 from app.repository.product import ProductRepository
 from app.repository.user import UserRepository
 from app.services.auth import AuthService
+from app.services.liquids import LiquidsService
 from app.services.product import ProductService
 from app.services.category import CategoryService
 from app.services.constructor import ConstructorService
@@ -28,3 +30,7 @@ async def get_category_service(db: AsyncSession = Depends(get_db)):
 async def get_constructor_service(db: AsyncSession = Depends(get_db)):
     constructor_repository = ConstructorRepository(db)
     return ConstructorService(db, constructor_repository)
+
+async def get_liquids_service(db: AsyncSession = Depends(get_db)):
+    liquids_service = LiquidsRepository(db)
+    return LiquidsService(db, liquids_service)
