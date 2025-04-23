@@ -6,12 +6,14 @@ from app.repository.category import CategoryRepository
 from app.repository.components import ComponentsRepository
 from app.repository.constructor import ConstructorRepository
 from app.repository.devices import DevicesRepository
+from app.repository.hookahs import HookahsRepository
 from app.repository.liquids import LiquidsRepository
 from app.repository.product import ProductRepository
 from app.repository.user import UserRepository
 from app.services.auth import AuthService
 from app.services.components import ComponentsService
 from app.services.devices import DevicesService
+from app.services.hookahs import HookahsService
 from app.services.liquids import LiquidsService
 from app.services.product import ProductService
 from app.services.category import CategoryService
@@ -51,3 +53,8 @@ async def get_devices_service(db: AsyncSession = Depends(get_db)):
 async def get_components_service(db: AsyncSession = Depends(get_db)):
     components_service = ComponentsRepository(db)
     return ComponentsService(db, components_service)
+
+
+async def get_hookahs_service(db: AsyncSession = Depends(get_db)):
+    hookahs_service = HookahsRepository(db)
+    return HookahsService(db, hookahs_service)
