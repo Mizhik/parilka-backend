@@ -3,12 +3,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.db import get_db
 from app.repository.category import CategoryRepository
+from app.repository.components import ComponentsRepository
 from app.repository.constructor import ConstructorRepository
 from app.repository.devices import DevicesRepository
 from app.repository.liquids import LiquidsRepository
 from app.repository.product import ProductRepository
 from app.repository.user import UserRepository
 from app.services.auth import AuthService
+from app.services.components import ComponentsService
 from app.services.devices import DevicesService
 from app.services.liquids import LiquidsService
 from app.services.product import ProductService
@@ -44,3 +46,8 @@ async def get_liquids_service(db: AsyncSession = Depends(get_db)):
 async def get_devices_service(db: AsyncSession = Depends(get_db)):
     devices_service = DevicesRepository(db)
     return DevicesService(db, devices_service)
+
+
+async def get_components_service(db: AsyncSession = Depends(get_db)):
+    components_service = ComponentsRepository(db)
+    return ComponentsService(db, components_service)
