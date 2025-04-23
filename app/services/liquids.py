@@ -12,7 +12,7 @@ class LiquidsService:
         self.db = db
         self.repository = repository
 
-    async def get_liquids(self, offset: Optional[int] = None, limit: Optional[int] = None):
-        products = await self.repository.get_liquids(offset=offset, limit=limit)
+    async def get_liquids(self, offset: Optional[int] = None, limit: Optional[int] = None, **filters):
+        products = await self.repository.get_liquids(offset=offset, limit=limit, **filters)
         products_schema = [map_product_to_schema(product) for product in products]
         return ResponseSchema(data=products_schema, message="All liquids products")
