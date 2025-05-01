@@ -3,6 +3,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.enums import ProductStatus
 from app.models.models import Product
 from app.repository.product import ProductRepository
 from app.schemas.product import ProductSchema
@@ -17,7 +18,11 @@ class ProductService:
         self.repository = repository
 
     async def get_popular_products(self, offset: Optional[int] = None, limit: Optional[int] = None):
-        products = await self.repository.get_many(offset=offset, limit=limit, where=[Product.is_popular.is_(True)])
+        products = await self.repository.get_many(
+            offset=offset,
+            limit=limit,
+            where=[Product.status.is_(ProductStatus.POPULAR)]
+        )
         products_schema = [map_product_to_schema(product) for product in products]
         return ResponseSchema(data=products_schema, message="Popular products")
 

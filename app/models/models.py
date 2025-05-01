@@ -1,4 +1,6 @@
 from uuid import UUID
+
+from pydantic import model_validator
 from sqlalchemy import (
     Boolean,
     Enum,
@@ -11,8 +13,14 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
-from app.models.enums import ConstructorTag, Status, Payment as PaymentEnum, Delivery as DeliveryEnum, ConstructorType as ConstructorEnum
+from app.models.enums import (ConstructorTag,
+                              Status,
+                              Payment as PaymentEnum,
+                              Delivery as DeliveryEnum,
+                              ConstructorType as ConstructorEnum,
+                              ProductStatus as StatusEnum)
 from app.models.base_model import Base
+from app.schemas.product import ProductSchema
 
 product_attribute_association = Table(
     "product_attribute",
@@ -37,10 +45,12 @@ class Product(Base):
     price: Mapped[DECIMAL] = mapped_column(
         DECIMAL(precision=10, scale=2), nullable=False
     )
+    discount_price: Mapped[DECIMAL] = mapped_column(
+        DECIMAL(precision=10, scale=2), nullable=True
+    )
     stock_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
-    is_popular: Mapped[bool] = mapped_column(Boolean, default=False)
-    is_new: Mapped[bool] = mapped_column(Boolean, default=False)
+    status: Mapped[StatusEnum] = mapped_column("status", Enum(StatusEnum), default=StatusEnum.NONE)
 
     images: Mapped[list["Image"]] = relationship(
         "Image", back_populates="product", cascade="all, delete-orphan", lazy="selectin"
@@ -73,6 +83,15 @@ class Product(Base):
         secondary=product_attribute_association,
         back_populates="products",
     )
+
+    @model_validator(mode="after")
+    def validate_discount_price(self):
+        if self.status == StatusEnum.DISCOUNT:
+            if self.discount_price is None:
+                raise ValueError("The discount_price field is required if the status is DISCOUNT.")
+            if self.discount_price >= self.price:
+                raise ValueError("discount_price must be less than price.")
+        return self
 
 
 class Image(Base):

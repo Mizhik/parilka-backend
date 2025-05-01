@@ -29,3 +29,10 @@ class ConstructorType(str, Enum):
 class ConstructorTag(str, Enum):
     TOP_BANNER = "top_banner"
     ACCORDION = "accordion"
+
+
+class ProductStatus(str, Enum):
+    POPULAR = "popular"
+    NEW = "new"
+    DISCOUNT = "discount"
+    NONE = "none"
