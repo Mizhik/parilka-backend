@@ -34,4 +34,5 @@ class ConstructorTag(str, Enum):
 class ProductStatus(str, Enum):
     POPULAR = "popular"
     NEW = "new"
+    DISCOUNT = "discount"
     NONE = "none"

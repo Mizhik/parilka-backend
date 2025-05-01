@@ -16,6 +16,7 @@ class ProductSchema(BaseModel):
     title: str = Field(min_length=1, max_length=50)
     description: str = Field(min_length=1, max_length=255)
     price: Decimal = Field(gt=0)
+    discount_price: Optional[Decimal] = Field(default=None, gt=0)
     stock_quantity: int = Field(ge=0)
     is_available: bool = Field(default=True)
     status: StatusEnum = StatusEnum.NONE
