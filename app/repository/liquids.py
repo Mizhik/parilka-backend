@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, or_
 from sqlalchemy.orm import selectinload
 
 from app.models.models import Product, Category
@@ -24,6 +24,7 @@ class LiquidsRepository(BaseRepository[Product]):
     ) -> List[Product]:
         stmt = (
             select(self.model)
+            .distinct()
             .join(self.model.category)
             .join(self.model.manufacturer)
             .where(Category.title.ilike("liquid"))
@@ -32,9 +33,21 @@ class LiquidsRepository(BaseRepository[Product]):
         filters = []
 
         if min_price is not None:
-            filters.append(Product.price >= min_price)
+            filters.append(
+                or_(
+                    Product.discount_price >= min_price,
+                    and_(Product.discount_price is None, Product.price >= min_price)
+                )
+            )
+
         if max_price is not None:
-            filters.append(Product.price <= max_price)
+            filters.append(
+                or_(
+                    Product.discount_price <= max_price,
+                    and_(Product.discount_price is None, Product.price <= max_price)
+                )
+            )
+
         if manufacturer_ids:
             filters.append(Product.manufacturer_id.in_(manufacturer_ids))
 
