@@ -6,7 +6,8 @@ from pydantic import BaseModel, Field
 class ImageSchema(BaseModel):
     id: Optional[UUID] = None
     image_url: str = Field(max_length=500)
-    product_id: UUID
+    is_main: bool = False
+    product_id: Optional[UUID] = None
 
     class Config:
         from_attributes = True
