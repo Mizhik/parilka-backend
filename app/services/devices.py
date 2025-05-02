@@ -17,8 +17,8 @@ class DevicesService:
         devices = await self.repository.get_devices(
             offset=filters.offset,
             limit=filters.limit,
-            min_price=filters.price_min,
-            max_price=filters.price_max,
+            min_price=filters.min_price,
+            max_price=filters.max_price,
             manufacturer_ids=filters.manufacturer_id,
         )
         devices_schema = [map_product_to_schema(device) for device in devices]

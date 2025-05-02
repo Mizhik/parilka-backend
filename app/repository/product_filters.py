@@ -34,3 +34,13 @@ def product_filters(
         filters.append(Product.manufacturer_id.in_(manufacturer_ids))
 
     return filters
+
+
+def apply_common_filters(stmt, filters, offset=None, limit=None):
+    if filters:
+        stmt = stmt.where(and_(*filters))
+    if offset is not None:
+        stmt = stmt.offset(offset)
+    if limit is not None:
+        stmt = stmt.limit(limit)
+    return stmt

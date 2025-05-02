@@ -1,12 +1,12 @@
 from typing import Optional, List
 from uuid import UUID
 
-from sqlalchemy import select, or_, and_
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.models.models import Product, Category
 from app.repository.base_repository import BaseRepository
-from app.repository.product_filters import product_filters
+from app.repository.product_filters import product_filters, apply_common_filters
 
 
 class DevicesRepository(BaseRepository[Product]):
@@ -27,19 +27,12 @@ class DevicesRepository(BaseRepository[Product]):
         stmt = (
             select(self.model)
             .distinct()
-            .join(Category)
+            .join(Category, Product.category)
             .where(Category.title.ilike("device"))
         )
 
         filters = product_filters(min_price, max_price, manufacturer_ids)
-
-        if filters:
-            stmt = stmt.where(and_(*filters))
-
-        if offset is not None:
-            stmt = stmt.offset(offset)
-        if limit is not None:
-            stmt = stmt.limit(limit)
+        stmt = apply_common_filters(stmt, filters, offset, limit)
 
         result = await self.db.execute(stmt)
         return result.scalars().all()

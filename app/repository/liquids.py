@@ -1,10 +1,12 @@
 from typing import Optional, List
+from uuid import UUID
 
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.models.models import Product, Category
 from app.repository.base_repository import BaseRepository
+from app.repository.product_filters import product_filters, apply_common_filters
 
 
 class LiquidsRepository(BaseRepository[Product]):
@@ -20,44 +22,17 @@ class LiquidsRepository(BaseRepository[Product]):
             limit: Optional[int] = None,
             min_price: Optional[float] = None,
             max_price: Optional[float] = None,
-            manufacturer_ids: Optional[List[int]] = None,
+            manufacturer_ids: Optional[List[UUID]] = None,
     ) -> List[Product]:
         stmt = (
             select(self.model)
             .distinct()
-            .join(self.model.category)
-            .join(self.model.manufacturer)
+            .join(Category, Product.category)
             .where(Category.title.ilike("liquid"))
         )
 
-        filters = []
-
-        if min_price is not None:
-            filters.append(
-                or_(
-                    Product.discount_price >= min_price,
-                    and_(Product.discount_price is None, Product.price >= min_price)
-                )
-            )
-
-        if max_price is not None:
-            filters.append(
-                or_(
-                    Product.discount_price <= max_price,
-                    and_(Product.discount_price is None, Product.price <= max_price)
-                )
-            )
-
-        if manufacturer_ids:
-            filters.append(Product.manufacturer_id.in_(manufacturer_ids))
-
-        if filters:
-            stmt = stmt.where(and_(*filters))
-
-        if offset is not None:
-            stmt = stmt.offset(offset)
-        if limit is not None:
-            stmt = stmt.limit(limit)
+        filters = product_filters(min_price, max_price, manufacturer_ids)
+        stmt = apply_common_filters(stmt, filters, offset, limit)
 
         result = await self.db.execute(stmt)
         return result.scalars().all()
