@@ -3,6 +3,7 @@ from decimal import Decimal
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
+from app.models.enums import ProductStatus as StatusEnum
 from app.schemas.image import ImageSchema
 from app.schemas.country import CountrySchema
 from app.schemas.manufacturer import ManufacturerSchema
@@ -15,10 +16,10 @@ class ProductSchema(BaseModel):
     title: str = Field(min_length=1, max_length=50)
     description: str = Field(min_length=1, max_length=255)
     price: Decimal = Field(gt=0)
+    discount_price: Optional[Decimal] = Field(default=None, gt=0)
     stock_quantity: int = Field(ge=0)
     is_available: bool = Field(default=True)
-    is_popular: bool = Field(default=False)
-    is_new: bool = Field(default=False)
+    status: StatusEnum = StatusEnum.NONE
     category_id: UUID
     country_of_origin_id: UUID
     manufacturer_id: UUID
