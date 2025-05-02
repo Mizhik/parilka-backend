@@ -3,6 +3,8 @@ from decimal import Decimal
 from pydantic import BaseModel, Field, model_validator
 from typing import List, Optional, Self
 
+from pydantic.json_schema import SkipJsonSchema
+
 from app.models.enums import ProductStatus as StatusEnum
 from app.schemas.image import ImageSchema
 from app.schemas.attribute import AttributeSchema
@@ -21,7 +23,7 @@ class ProductSchema(BaseModel):
         from_attributes = True
 
 class ProductDetailsSchema(ProductSchema):
-    main_image: Optional[ImageSchema] = Field(default=None, exclude=True)
+    main_image: SkipJsonSchema[Optional[ImageSchema]] = Field(default=None, exclude=True)
     stock_quantity: int = Field(ge=0)
     country_of_origin_id: UUID
     manufacturer_id: UUID
