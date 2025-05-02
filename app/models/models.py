@@ -10,8 +10,8 @@ from sqlalchemy import (
     Column,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
-from app.models.enums import ConstructorTag, Status, Payment as PaymentEnum, Delivery as DeliveryEnum, ConstructorType as ConstructorEnum
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from app.models.enums import Status, Payment as PaymentEnum, Delivery as DeliveryEnum
 from app.models.base_model import Base
 
 product_attribute_association = Table(
@@ -245,8 +245,3 @@ class Delivery(Base):
     order: Mapped["Order"] = relationship(
         "Order", back_populates="delivery_method", lazy="selectin"
     )
-
-class Constructor(Base):
-    __tablename__ = "constructor"
-    tag: Mapped[ConstructorTag] = mapped_column("tag", Enum(ConstructorTag), nullable=False, unique=True)
-    component_data: Mapped[JSONB] = mapped_column("component_data", JSONB, nullable=False)

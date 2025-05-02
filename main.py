@@ -9,7 +9,7 @@ from fastapi.openapi.utils import get_openapi
 
 from app.core import settings
 from app.core.settings import config
-from app.routes import auth, categories, constructor, healthchecker, products
+from app.routes import auth, categories, healthchecker, products
 from app.schemas.response import ResponseSchema
 from app.services.errors import BaseError, LoginFailed
 
@@ -28,7 +28,6 @@ app.include_router(healthchecker.router)
 app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(categories.router)
-app.include_router(constructor.router)
 
 @app.exception_handler(BaseError)
 async def exception_handler(req: Request, ex: HTTPException):
