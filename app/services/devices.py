@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repository.devices import DevicesRepository
 from app.schemas.response import ResponseSchema
+from app.schemas.filters import ProductFilterParams
 from app.utils.mappers import map_product_to_schema
 
 
@@ -12,7 +13,13 @@ class DevicesService:
         self.db = db
         self.repository = repository
 
-    async def get_devices(self, offset: Optional[int] = None, limit: Optional[int] = None):
-        devices = await self.repository.get_devices(offset=offset, limit=limit)
+    async def get_devices(self, filters: ProductFilterParams):
+        devices = await self.repository.get_devices(
+            offset=filters.offset,
+            limit=filters.limit,
+            min_price=filters.price_min,
+            max_price=filters.price_max,
+            manufacturer_ids=filters.manufacturer_id,
+        )
         devices_schema = [map_product_to_schema(device) for device in devices]
         return ResponseSchema(data=devices_schema, message="All devices products")
