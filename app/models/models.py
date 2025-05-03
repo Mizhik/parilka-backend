@@ -12,15 +12,12 @@ from sqlalchemy import (
     Column,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
-from app.models.enums import (ConstructorTag,
-                              Status,
+from sqlalchemy.dialects.postgresql import  UUID as PGUUID
+from app.models.enums import (Status,
                               Payment as PaymentEnum,
                               Delivery as DeliveryEnum,
-                              ConstructorType as ConstructorEnum,
                               ProductStatus as StatusEnum)
 from app.models.base_model import Base
-from app.schemas.product import ProductSchema
 
 product_attribute_association = Table(
     "product_attribute",
@@ -98,6 +95,7 @@ class Image(Base):
     __tablename__ = "images"
 
     image_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    is_main: Mapped[bool] = mapped_column(Boolean(), default=False)
     product_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("products.id", ondelete="CASCADE"),
@@ -264,8 +262,3 @@ class Delivery(Base):
     order: Mapped["Order"] = relationship(
         "Order", back_populates="delivery_method", lazy="selectin"
     )
-
-class Constructor(Base):
-    __tablename__ = "constructor"
-    tag: Mapped[ConstructorTag] = mapped_column("tag", Enum(ConstructorTag), nullable=False, unique=True)
-    component_data: Mapped[JSONB] = mapped_column("component_data", JSONB, nullable=False)
