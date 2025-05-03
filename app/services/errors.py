@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_409_CONFLICT
+from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_409_CONFLICT, HTTP_500_INTERNAL_SERVER_ERROR
 
 class BaseError(HTTPException):
     def __init__(self, message: str = "An error occured"):
@@ -23,6 +23,11 @@ class UserForbidden(HTTPException):
         super().__init__(
             status_code=status.HTTP_403_FORBIDDEN, detail="Error Forbidden"
         )
+
+class InternalServerError(BaseError):
+    def __init__(self, message: str = "Internal server error"):
+        self.status_code = HTTP_500_INTERNAL_SERVER_ERROR
+        super().__init__(message)
 
 class DuplicateError(BaseError):
     def __init__(self, message: str = "Found duplicate"):
