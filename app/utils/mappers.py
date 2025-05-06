@@ -10,8 +10,6 @@ def map_product_to_schema(product: Product, is_full: bool = False) -> ProductSch
             id=product.id,
             title=product.title,
             price=product.price, # type: ignore
-            category_id=product.category_id,
-            is_available=product.is_available,
             main_image=next((ImageSchema.model_validate(img) for img in product.images if img.is_main))
         )
 
