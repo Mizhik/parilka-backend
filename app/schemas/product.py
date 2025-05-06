@@ -17,7 +17,8 @@ class ProductSchema(BaseModel):
     discount_price: Optional[Decimal] = Field(default=None, gt=0)
     is_available: bool = Field(default=True)
     status: StatusEnum = StatusEnum.NONE
-    category_id: UUID
+    category: Optional[str] = None
+    sub_category: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -31,7 +32,15 @@ class ProductDetailsSchema(ProductSchema):
     description: str = Field(min_length=1, max_length=255)
     images: List[ImageSchema] = []
     attributes: List[AttributeSchema] = []
-    
+    category_id: UUID
+    subcategory_id: Optional[UUID] = None
+
+class ProductCreateSchema(ProductDetailsSchema):
+    id: SkipJsonSchema[Optional[UUID]] = Field(default=None, exclude=True)
+    category: SkipJsonSchema[Optional[str]] = Field(default=None, exclude=True)
+    sub_category: SkipJsonSchema[Optional[str]] = Field(default=None, exclude=True)
+    category_id: UUID
+    subcategory_id: Optional[UUID] = None
     @model_validator(mode='after')
     def check_main_image_count(self) -> Self:
         if len(self.images) == 0:

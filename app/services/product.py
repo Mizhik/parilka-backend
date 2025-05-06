@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.enums import ProductStatus
 from app.models.models import Product
 from app.repository.product import ProductRepository
-from app.schemas.product import ProductDetailsSchema, ProductSchema
+from app.schemas.product import ProductCreateSchema, ProductDetailsSchema, ProductSchema
 from app.schemas.response import ResponseSchema
 from app.services.errors import ErrorNotFound, InternalServerError
 from app.utils.mappers import map_product_to_schema
@@ -42,7 +42,7 @@ class ProductService:
 
         return ResponseSchema[ProductSchema](data=product_schema, message="Product detail")
 
-    async def create_product(self, body: ProductDetailsSchema):
+    async def create_product(self, body: ProductCreateSchema):
         values = body.dict(exclude_unset=True)
 
         created_product = await self.repository.create(values)

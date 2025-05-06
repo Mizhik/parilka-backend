@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from typing import List, Optional
 
-from app.schemas.product import ProductDetailsSchema, ProductSchema
+from app.schemas.product import ProductCreateSchema, ProductDetailsSchema, ProductSchema
 from app.schemas.response import ResponseSchema
 from app.services.dependencies import get_product_service
 from app.services.product import ProductService
@@ -37,9 +37,9 @@ async def get_product(
     return await product_service.get_one_product(product_id=product_id)
 
 
-@router.post("/add", response_model=ResponseSchema[ProductDetailsSchema])
+@router.post("/add", response_model=ResponseSchema[ProductCreateSchema])
 async def create(
-        body: ProductDetailsSchema,
+        body: ProductCreateSchema,
         product_service: ProductService = Depends(get_product_service)
 ):
     return await product_service.create_product(body)
