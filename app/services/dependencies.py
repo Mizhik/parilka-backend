@@ -5,11 +5,13 @@ from app.database.db import get_db
 from app.repository.category import CategoryRepository
 from app.repository.liquids import LiquidsRepository
 from app.repository.product import ProductRepository
+from app.repository.subcategory import SubCategoryRepository
 from app.repository.user import UserRepository
 from app.services.auth import AuthService
 from app.services.liquids import LiquidsService
 from app.services.product import ProductService
 from app.services.category import CategoryService
+from app.services.subcategory import SubCategoryService
 
 
 async def get_user_service(db: AsyncSession = Depends(get_db)):
@@ -24,6 +26,11 @@ async def get_product_service(db: AsyncSession = Depends(get_db)):
 async def get_category_service(db: AsyncSession = Depends(get_db)):
     category_repository = CategoryRepository(db)
     return CategoryService(db, category_repository)
+
+async def get_subcategory_service(db: AsyncSession = Depends(get_db)):
+    subcategory_repository = SubCategoryRepository(db)
+    category_repository = CategoryRepository(db)
+    return SubCategoryService(db, subcategory_repository, category_repository)
 
 async def get_liquids_service(db: AsyncSession = Depends(get_db)):
     liquids_service = LiquidsRepository(db)

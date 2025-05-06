@@ -1,3 +1,4 @@
+from typing import Optional
 from uuid import UUID
 
 from pydantic import model_validator
@@ -13,6 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import  UUID as PGUUID
+from sqlalchemy.sql.operators import as_
 from app.models.enums import (Status,
                               Payment as PaymentEnum,
                               Delivery as DeliveryEnum,
@@ -55,21 +57,28 @@ class Product(Base):
 
     category_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
-        ForeignKey("categories.id", ondelete="CASCADE"),
+        ForeignKey("categories.id", ondelete="CASCADE", name="CategoryProductFK"),
         nullable=False,
     )
     category: Mapped["Category"] = relationship("Category", back_populates="products")
 
+    subcategory_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("subcategories.id", ondelete="SET NULL", name="SubCategoryProductFK"),
+        nullable=True,
+    )
+    subcategory: Mapped[Optional["SubCategory"]] = relationship("SubCategory", back_populates="products")
+
     country_of_origin_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
-        ForeignKey("countries.id", ondelete="CASCADE"),
+        ForeignKey("countries.id", ondelete="CASCADE", name="CountryOfOriginProductFK"),
         nullable=False,
     )
     country: Mapped["Country"] = relationship("Country", back_populates="products")
 
     manufacturer_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
-        ForeignKey("manufacturers.id", ondelete="CASCADE"),
+        ForeignKey("manufacturers.id", ondelete="CASCADE", name="ManufacturerProductFK"),
         nullable=False,
     )
     manufacturer: Mapped["Manufacturer"] = relationship(
@@ -127,6 +136,24 @@ class Category(Base):
         back_populates="category",
         lazy="selectin",
         cascade="all, delete-orphan",
+    )
+
+class SubCategory(Base):
+    __tablename__ = "subcategories"
+
+    title: Mapped[str] = mapped_column(String(50), nullable=False)
+    display_title: Mapped[str] = mapped_column(String(150), nullable=False)
+
+    parent_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("categories.id", ondelete="SET NULL", name="SubCategoryParentFK"),
+        nullable=False,
+    )
+
+    products: Mapped[list["Product"]] = relationship(
+        "Product",
+        back_populates="subcategory",
+        lazy="selectin",
     )
 
 
