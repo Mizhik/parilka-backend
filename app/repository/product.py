@@ -15,14 +15,19 @@ class ProductRepository(BaseRepository[Product]):
         images = body.pop("images", [])
         attributes = body.pop("attributes", [])
         product = Product(**body)
-        
-        for image in images:
-            product.images.append(Image(**image))
-
-        for attribute in attributes:
-            product.attributes.append(Attribute(**attribute))
-
         self.db.add(product)
+
+        for image_data in images:
+            image = Image(**image_data)
+            product.images.append(image)
+
+        for attribute_data in attributes:
+            attr_images = attribute_data.pop("images", [])
+            attribute = Attribute(**attribute_data)
+            for image_data in attr_images:
+                attribute.images.append(Image(**image_data))
+            product.attributes.append(attribute)
+
         await self.db.commit()
         await self.db.refresh(product)
         return product

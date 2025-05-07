@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Optional
 from uuid import UUID
 
@@ -9,32 +10,14 @@ from sqlalchemy import (
     Integer,
     String,
     DECIMAL,
-    Table,
-    Column,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from sqlalchemy.dialects.postgresql import  UUID as PGUUID
-from sqlalchemy.sql.operators import as_
-from app.models.enums import (Status,
+from app.models.enums import (AttributeGroupEnum, Status,
                               Payment as PaymentEnum,
                               Delivery as DeliveryEnum,
                               ProductStatus as StatusEnum)
 from app.models.base_model import Base
-
-product_attribute_association = Table(
-    "product_attribute",
-    Base.metadata,
-    Column(
-        "product_id", PGUUID(as_uuid=True), ForeignKey("products.id"), primary_key=True
-    ),
-    Column(
-        "attribute_id",
-        PGUUID(as_uuid=True),
-        ForeignKey("attributes.id"),
-        primary_key=True,
-    ),
-)
-
 
 class Product(Base):
     __tablename__ = "products"
@@ -47,7 +30,7 @@ class Product(Base):
     discount_price: Mapped[DECIMAL] = mapped_column(
         DECIMAL(precision=10, scale=2), nullable=True
     )
-    stock_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    stock_quantity: Mapped[int] = mapped_column(Integer, nullable=True)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
     status: Mapped[StatusEnum] = mapped_column("status", Enum(StatusEnum), default=StatusEnum.NONE)
 
@@ -86,8 +69,10 @@ class Product(Base):
     )
 
     attributes: Mapped[list["Attribute"]] = relationship(
-        secondary=product_attribute_association,
-        back_populates="products",
+        "Attribute",
+        back_populates="product",
+        lazy="selectin",
+        cascade="all, delete-orphan"
     )
 
     @model_validator(mode="after")
@@ -108,21 +93,59 @@ class Image(Base):
     product_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("products.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
     )
 
-    product: Mapped[Product] = relationship("Product", back_populates="images")
+    attribute_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("attributes.id", ondelete="CASCADE"),
+        nullable=True
+    )
+
+    attribute: Mapped["Attribute"] = relationship("Attribute", back_populates="images", lazy="selectin")
+
+    product: Mapped[Product] = relationship("Product", back_populates="images", lazy="selectin")
+
+    @validates("product_id")
+    def validate_product_id(self, key, value):
+        if value and self.attribute_id:
+            raise ValueError("Image must be linked only to a product or an attribute")
+        return value
+
+    @validates("attribute_id")
+    def validate_attribute_id(self, key, value):
+        if value and self.product_id:
+            raise ValueError("Image must be linked only to a product or an attribute")
+
+        return value
 
 
 class Attribute(Base):
     __tablename__ = "attributes"
 
-    title: Mapped[str] = mapped_column(String(100), nullable=False)
     value: Mapped[str] = mapped_column(String, nullable=False)
 
-    products: Mapped[list["Product"]] = relationship(
-        secondary=product_attribute_association,
+    attribute_group: Mapped[AttributeGroupEnum] = mapped_column(
+        Enum(AttributeGroupEnum, name="attribute_group_enum"), nullable=False
+    )
+    stock_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    price_modifier: Mapped[Decimal] = mapped_column(DECIMAL, nullable=True)
+
+    product_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("products.id", ondelete="CASCADE", name="AttributeProductFK"),
+        nullable=False
+    )
+
+    images: Mapped[list["Image"]] = relationship(
+        "Image", back_populates="attribute", cascade="all, delete-orphan", lazy="selectin"
+    )
+
+    product: Mapped["Product"] = relationship(
+        "Product",
         back_populates="attributes",
+        lazy="selectin"
     )
 
 

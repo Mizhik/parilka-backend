@@ -25,3 +25,11 @@ class ProductStatus(str, Enum):
     NEW = "new"
     DISCOUNT = "discount"
     NONE = "none"
+
+class AttributeGroupEnum(str, Enum):
+    TASTE = "taste",
+    VOLUME = "volume",
+    COUNTRY = "country",
+    COLOR = "color",
+    TASTE_GROUP = "tasteGroup",
+    BRAND = "brand"

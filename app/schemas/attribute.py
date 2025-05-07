@@ -1,12 +1,42 @@
-from typing import Optional
+from decimal import Decimal
+from typing import List, Optional, Self
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, model_validator
+from pydantic.json_schema import SkipJsonSchema
+
+from app.models.enums import AttributeGroupEnum
+from app.schemas.image import ImageSchema
 
 
 class AttributeSchema(BaseModel):
     id: Optional[UUID] = None
-    title: str = Field(max_length=100)
+    attribute_group: AttributeGroupEnum
     value: str
+    price_modifier: Optional[Decimal] = None
+    stock_quantity: int
+    images: List[ImageSchema] = []
 
     class Config:
         from_attributes = True
+
+
+class AttributeCreateSchema(AttributeSchema):
+    id: SkipJsonSchema[Optional[UUID]] = None
+
+    @model_validator(mode='after')
+    def check_main_image_count(self) -> Self:
+        if len(self.images) == 0:
+            return self
+
+        main_count = 0
+        for image in self.images:
+            if image.is_main:
+                main_count += 1
+
+        if main_count > 1:
+            raise ValueError("Attribute can only have 1 main image")
+
+        if main_count == 0:
+            self.images[0].is_main = True
+
+        return self

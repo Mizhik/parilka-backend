@@ -6,11 +6,17 @@ from app.schemas.attribute import AttributeSchema
 
 def map_product_to_schema(product: Product, is_full: bool = False) -> ProductSchema:
     if not is_full:
+        main_image = next((ImageSchema.model_validate(img) for img in product.images if img.is_main), None)
+        if main_image is None:
+            for attribute in product.attributes:
+                if main_image is not None: 
+                    break
+                main_image = next((ImageSchema.model_validate(img) for img in attribute.images if img.is_main), None)
         return ProductSchema(
             id=product.id,
             title=product.title,
             price=product.price, # type: ignore
-            main_image=next((ImageSchema.model_validate(img) for img in product.images if img.is_main))
+            main_image=main_image 
         )
 
     return ProductDetailsSchema(
