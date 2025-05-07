@@ -1,5 +1,4 @@
-from pydantic import ConfigDict
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -10,6 +9,7 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = 5432
     POSTGRES_LOCAL_PORT: int = 5432
     POSTGRES_DB: str = "yourdbname"
+    POSTGRES_TEST_DB: str = "test_db"
 
     PORT: int = 8000
     LOCAL_PORT: int = 8000
@@ -33,10 +33,18 @@ class Settings(BaseSettings):
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST_SYNC}:{self.POSTGRES_LOCAL_PORT}/{self.POSTGRES_DB}"
 
     @property
+    def ASYNC_TEST_DATABASE_URL(self) -> str:
+        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@localhost:{self.POSTGRES_PORT}/{self.POSTGRES_TEST_DB}"
+
+    @property
+    def SYNC_TEST_DATABASE_URL(self) -> str:
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@localhost:{self.POSTGRES_PORT}/{self.POSTGRES_TEST_DB}"
+
+    @property
     def ALLOWED_ORIGINS_LIST(self) -> list:
         return self.STR_ALLOWED_ORIGINS.split(",")
 
-    model_config = ConfigDict(
+    model_config = SettingsConfigDict(
         extra="ignore", env_file=".env", env_file_encoding="utf-8"
     )
 

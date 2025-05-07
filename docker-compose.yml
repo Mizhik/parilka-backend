@@ -17,7 +17,7 @@ services:
       - app-network
 
   postgres:
-    image: postgres:12-alpine
+    image: postgres:17-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -25,11 +25,14 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - postgres:/var/lib/postgresql/data
     ports:
       - ${POSTGRES_LOCAL_PORT}:${POSTGRES_PORT}
     networks:
       - app-network
+
+volumes:
+  postgres:
 networks:
   app-network:
     driver: bridge
