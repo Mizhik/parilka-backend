@@ -1,24 +1,18 @@
-
-
 from typing import Awaitable, Callable, List
 from uuid import uuid4
 from httpx import AsyncClient
 import pytest
 from app.schemas.manufacturer import ManufacturerCreateSchema, ManufacturerSchema
-from app.schemas.response import ResponseSchema
-from tests.conftest import created_manufacturer
+from tests.utils import parse_response
 
 
 @pytest.mark.asyncio
 async def test_get_categories(client: AsyncClient, created_manufacturer: ManufacturerSchema):
     res = await client.get("/manufacturers")
 
-    assert res.status_code == 200
+    m = parse_response(res, List[ManufacturerSchema])
 
-    m = ResponseSchema[List[ManufacturerSchema]].model_validate(res.json())
-    
-    assert isinstance(m.data, list)
-    assert created_manufacturer in m.data
+    assert created_manufacturer in m
 
 @pytest.mark.asyncio
 async def test_create_duplicate_manufacturer(client: AsyncClient, created_manufacturer: ManufacturerSchema):
@@ -30,14 +24,11 @@ async def test_create_duplicate_manufacturer(client: AsyncClient, created_manufa
 async def test_edit_manufacturer(client: AsyncClient, created_manufacturer: ManufacturerSchema, manufacturer_payload: Callable[[], ManufacturerCreateSchema]):
     payload = manufacturer_payload()
     res = await client.patch(f"/manufacturers/edit/{created_manufacturer.id}", json=payload.model_dump())
-    
-    assert res.status_code == 200
+    m = parse_response(res, ManufacturerSchema)
 
-    m = ResponseSchema[ManufacturerSchema].model_validate(res.json())
-
-    assert not isinstance(m.data, list)
-    assert m.data.name != created_manufacturer.name
-    assert m.data.name == payload.name
+    assert not isinstance(m, list)
+    assert m.name != created_manufacturer.name
+    assert m.name == payload.name
 
 @pytest.mark.asyncio
 async def test_edit_duplicate_manufacturer(client: AsyncClient, create_manufacturers: Callable[[], Awaitable[List[ManufacturerSchema]]]):
@@ -63,11 +54,9 @@ async def test_delete_manufacturer(client: AsyncClient, created_manufacturer: Ma
 
     mn = await client.get("/manufacturers")
 
-    assert mn.status_code == 200
+    m = parse_response(mn, List[ManufacturerSchema])
 
-    m = ResponseSchema[List[ManufacturerSchema]].model_validate(mn.json())
-
-    assert not created_manufacturer in m.data
+    assert not created_manufacturer in m
 
 @pytest.mark.asyncio
 async def test_delete_non_existent_manufacturer(client: AsyncClient):

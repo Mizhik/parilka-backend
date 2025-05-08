@@ -20,8 +20,7 @@ engine_test = create_async_engine(TEST_DATABASE_URL, future=True, echo=True)
 
 faker = faker_.Faker()
 
-
-def validate_response(response: Response, schema: type[BaseModel]) -> BaseModel:
+def _validate_response(response: Response, schema: type[BaseModel]) -> BaseModel:
     assert response.status_code == 200
     result = ResponseSchema[schema].model_validate(response.json())
     assert result.data is not None
@@ -92,7 +91,7 @@ def category_payload() -> Callable[[], CategorySchema]:
 async def created_category(client: AsyncClient, category_payload: Callable[[], CategorySchema]):
     payload = category_payload()
     response = await client.post("/categories/add", json=payload.model_dump())
-    return validate_response(response, CategorySchema)
+    return _validate_response(response, CategorySchema)
 
 @pytest_asyncio.fixture(scope="function")
 async def create_categories(client: AsyncClient, category_payload):
@@ -101,7 +100,7 @@ async def create_categories(client: AsyncClient, category_payload):
         for _ in range(count):
             payload = category_payload()
             response = await client.post("/categories/add", json=payload.model_dump())
-            category = validate_response(response, CategorySchema)
+            category = _validate_response(response, CategorySchema)
             categories.append(category)
         return categories
     return _create_multiple
@@ -118,7 +117,7 @@ def manufacturer_payload() -> Callable[[], ManufacturerCreateSchema]:
 async def created_manufacturer(client: AsyncClient, manufacturer_payload: Callable[[], ManufacturerCreateSchema]):
     payload = manufacturer_payload()
     response = await client.post("/manufacturers/add", json=payload.model_dump())
-    return validate_response(response, ManufacturerSchema)
+    return _validate_response(response, ManufacturerSchema)
 
 @pytest_asyncio.fixture(scope="function")
 async def create_manufacturers(client: AsyncClient, manufacturer_payload: Callable[[], ManufacturerCreateSchema]):
@@ -127,7 +126,7 @@ async def create_manufacturers(client: AsyncClient, manufacturer_payload: Callab
         for _ in range(count):
             payload = manufacturer_payload()
             response = await client.post("/manufacturers/add", json=payload.model_dump())
-            manufacturer = validate_response(response, ManufacturerSchema)
+            manufacturer = _validate_response(response, ManufacturerSchema)
             manufacturers.append(manufacturer)
         return manufacturers
     return _create_multiple

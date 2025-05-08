@@ -3,29 +3,25 @@ from uuid import uuid4
 from httpx import AsyncClient
 import pytest
 from app.schemas.category import CategorySchema
-from app.schemas.response import ResponseSchema
+from tests.utils import parse_response
+
 
 @pytest.mark.asyncio
 async def test_get_categories(client: AsyncClient, created_category: CategorySchema):
     response = await client.get("/categories")
 
-    assert response.status_code == 200
-
-    m = ResponseSchema[List[CategorySchema]].model_validate(response.json())
+    m = parse_response(response, List[CategorySchema])
     
-    assert isinstance(m.data, list)
-    assert created_category in m.data
+    assert isinstance(m, list)
+    assert created_category in m
 
 @pytest.mark.asyncio
 async def test_create_category(client: AsyncClient, category_payload: Callable[[], CategorySchema]):
     payload: CategorySchema = category_payload()
     response = await client.post("/categories/add", json=payload.model_dump())
-
-    assert response.status_code == 200
-
-    m = ResponseSchema[CategorySchema].model_validate(response.json())
-    assert not isinstance(m.data, list)
-    assert m.data.title == payload.title
+    m = parse_response(response, CategorySchema)
+    assert not isinstance(m, list)
+    assert m.title == payload.title
 
 @pytest.mark.asyncio
 async def test_create_duplicate_category(client: AsyncClient, created_category: CategorySchema):
@@ -39,13 +35,11 @@ async def test_edit_category(client: AsyncClient, created_category: CategorySche
 
     response = await client.patch(f"/categories/edit/{created_category.id}", json=payload.model_dump(exclude_none=True))
 
-    assert response.status_code == 200
+    m = parse_response(response, CategorySchema)
 
-    m = ResponseSchema[CategorySchema].model_validate(response.json())
-
-    assert not isinstance(m.data, list)
-    assert m.data.title != created_category.title
-    assert m.data.title == payload.title
+    assert not isinstance(m, list)
+    assert m.title != created_category.title
+    assert m.title == payload.title
 
 @pytest.mark.asyncio
 async def test_edit_duplicate_category(client: AsyncClient, create_categories: Callable[[], Awaitable[List[CategorySchema]]]):
@@ -72,9 +66,9 @@ async def test_delete_category(client: AsyncClient, created_category: CategorySc
 
     categories = await client.get("/categories")
     
-    m = ResponseSchema[List[CategorySchema]].model_validate(categories.json())
+    m = parse_response(categories, List[CategorySchema])
 
-    assert not created_category in m.data
+    assert not created_category in m
 
 @pytest.mark.asyncio
 async def test_delete_not_exists_category(client: AsyncClient):
