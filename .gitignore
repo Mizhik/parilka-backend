@@ -4,3 +4,4 @@ venv/
 /postgres_data
 /migrations
 alembic.ini
+.pytest_cache

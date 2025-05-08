@@ -12,12 +12,16 @@ from sqlalchemy import (
     DECIMAL,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
-from sqlalchemy.dialects.postgresql import  UUID as PGUUID
-from app.models.enums import (AttributeGroupEnum, Status,
-                              Payment as PaymentEnum,
-                              Delivery as DeliveryEnum,
-                              ProductStatus as StatusEnum)
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from app.models.enums import (
+    AttributeGroupEnum,
+    Status,
+    Payment as PaymentEnum,
+    Delivery as DeliveryEnum,
+    ProductStatus as StatusEnum,
+)
 from app.models.base_model import Base
+
 
 class Product(Base):
     __tablename__ = "products"
@@ -32,7 +36,9 @@ class Product(Base):
     )
     stock_quantity: Mapped[int] = mapped_column(Integer, nullable=True)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
-    status: Mapped[StatusEnum] = mapped_column("status", Enum(StatusEnum), default=StatusEnum.NONE)
+    status: Mapped[StatusEnum] = mapped_column(
+        "status", Enum(StatusEnum), default=StatusEnum.NONE
+    )
 
     images: Mapped[list["Image"]] = relationship(
         "Image", back_populates="product", cascade="all, delete-orphan", lazy="selectin"
@@ -43,25 +49,35 @@ class Product(Base):
         ForeignKey("categories.id", ondelete="CASCADE", name="CategoryProductFK"),
         nullable=False,
     )
-    category: Mapped["Category"] = relationship("Category", back_populates="products", lazy="select")
+    category: Mapped["Category"] = relationship(
+        "Category", back_populates="products", lazy="select"
+    )
 
     subcategory_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
-        ForeignKey("subcategories.id", ondelete="SET NULL", name="SubCategoryProductFK"),
+        ForeignKey(
+            "subcategories.id", ondelete="SET NULL", name="SubCategoryProductFK"
+        ),
         nullable=True,
     )
-    subcategory: Mapped[Optional["SubCategory"]] = relationship("SubCategory", back_populates="products")
+    subcategory: Mapped[Optional["SubCategory"]] = relationship(
+        "SubCategory", back_populates="products"
+    )
 
     country_of_origin_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("countries.id", ondelete="CASCADE", name="CountryOfOriginProductFK"),
         nullable=False,
     )
-    country: Mapped["Country"] = relationship("Country", back_populates="products", lazy="select")
+    country: Mapped["Country"] = relationship(
+        "Country", back_populates="products", lazy="select"
+    )
 
     manufacturer_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
-        ForeignKey("manufacturers.id", ondelete="CASCADE", name="ManufacturerProductFK"),
+        ForeignKey(
+            "manufacturers.id", ondelete="CASCADE", name="ManufacturerProductFK"
+        ),
         nullable=False,
     )
     manufacturer: Mapped["Manufacturer"] = relationship(
@@ -72,14 +88,16 @@ class Product(Base):
         "Attribute",
         back_populates="product",
         lazy="selectin",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
     )
 
     @model_validator(mode="after")
     def validate_discount_price(self):
         if self.status == StatusEnum.DISCOUNT:
             if self.discount_price is None:
-                raise ValueError("The discount_price field is required if the status is DISCOUNT.")
+                raise ValueError(
+                    "The discount_price field is required if the status is DISCOUNT."
+                )
             if self.discount_price >= self.price:
                 raise ValueError("discount_price must be less than price.")
         return self
@@ -99,12 +117,16 @@ class Image(Base):
     attribute_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("attributes.id", ondelete="CASCADE"),
-        nullable=True
+        nullable=True,
     )
 
-    attribute: Mapped["Attribute"] = relationship("Attribute", back_populates="images", lazy="selectin")
+    attribute: Mapped["Attribute"] = relationship(
+        "Attribute", back_populates="images", lazy="selectin"
+    )
 
-    product: Mapped[Product] = relationship("Product", back_populates="images", lazy="selectin")
+    product: Mapped[Product] = relationship(
+        "Product", back_populates="images", lazy="selectin"
+    )
 
     @validates("product_id")
     def validate_product_id(self, key, value):
@@ -135,17 +157,18 @@ class Attribute(Base):
     product_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
         ForeignKey("products.id", ondelete="CASCADE", name="AttributeProductFK"),
-        nullable=False
+        nullable=False,
     )
 
     images: Mapped[list["Image"]] = relationship(
-        "Image", back_populates="attribute", cascade="all, delete-orphan", lazy="selectin"
+        "Image",
+        back_populates="attribute",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
     product: Mapped["Product"] = relationship(
-        "Product",
-        back_populates="attributes",
-        lazy="selectin"
+        "Product", back_populates="attributes", lazy="selectin"
     )
 
 
@@ -160,6 +183,7 @@ class Category(Base):
         lazy="selectin",
         cascade="all, delete-orphan",
     )
+
 
 class SubCategory(Base):
     __tablename__ = "subcategories"

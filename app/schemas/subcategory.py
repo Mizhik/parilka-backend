@@ -3,7 +3,7 @@ from uuid import UUID
 from pydantic import BaseModel, field_validator
 
 
-class CreateSubCategorySchema(BaseModel):
+class SubCategoryCreateSchema(BaseModel):
     title: str
     parent_id: UUID
     display_title: str
@@ -13,7 +13,8 @@ class CreateSubCategorySchema(BaseModel):
     def lowercase_title(cls, v: str):
         return v.lower()
 
-class EditSubCategorySchema(BaseModel):
+
+class SubCategoryEditSchema(BaseModel):
     title: Optional[str] = None
     parent_id: Optional[UUID] = None
     display_title: Optional[str] = None
@@ -24,13 +25,11 @@ class EditSubCategorySchema(BaseModel):
         return v.lower()
 
 
-
 class SubCategorySchema(BaseModel):
     id: UUID
-    title: str 
+    title: str
     parent_id: UUID
     display_title: str
-
 
     model_config = {
         "from_attributes": True,

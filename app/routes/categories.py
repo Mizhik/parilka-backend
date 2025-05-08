@@ -3,7 +3,7 @@ from fastapi import APIRouter, Body, Depends
 from typing import List
 
 
-from app.schemas.category import CategorySchema
+from app.schemas.category import CategoryCreateSchema, CategorySchema
 from app.schemas.response import ResponseSchema
 from app.services.category import CategoryService
 from app.services.dependencies import get_category_service
@@ -20,9 +20,7 @@ async def get_categories(
 
 @router.post("/add", response_model=ResponseSchema[CategorySchema])
 async def create_category(
-    body: CategorySchema = Body(
-        ..., examples=[CategorySchema(id=None, title="string")]
-    ),
+    body: CategoryCreateSchema,
     category_service: CategoryService = Depends(get_category_service),
 ):
     return await category_service.create(body)
@@ -31,9 +29,7 @@ async def create_category(
 @router.patch("/edit/{category_id}", response_model=ResponseSchema[CategorySchema])
 async def edit_category(
     category_id: UUID,
-    body: CategorySchema = Body(
-        ..., examples=[CategorySchema(id=None, title="string")]
-    ),
+    body: CategoryCreateSchema,
     category_service: CategoryService = Depends(get_category_service),
 ):
     return await category_service.edit(category_id, body)
