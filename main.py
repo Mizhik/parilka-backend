@@ -9,7 +9,7 @@ from fastapi.openapi.utils import get_openapi
 
 from app.core import settings
 from app.core.settings import config
-from app.routes import auth, categories, healthchecker, products, subcategories, manufacturers
+from app.routes import auth, categories, countries, healthchecker, products, subcategories, manufacturers
 from app.schemas.response import ResponseSchema
 from app.services.errors import BaseHTTPError, HTTPLoginFailed
 
@@ -30,6 +30,7 @@ app.include_router(products.router)
 app.include_router(categories.router)
 app.include_router(subcategories.router)
 app.include_router(manufacturers.router)
+app.include_router(countries.router)
 
 @app.exception_handler(BaseHTTPError)
 async def exception_handler(req: Request, ex: HTTPException):

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.settings import config
-from app.routes import auth, categories, healthchecker, products, subcategories, manufacturers
+from app.routes import auth, categories, countries, healthchecker, products, subcategories, manufacturers
 
 app = FastAPI(docs_url=None, openapi_url=None, redoc_url=None)
 
@@ -21,3 +21,4 @@ app.include_router(products.router)
 app.include_router(categories.router)
 app.include_router(subcategories.router)
 app.include_router(manufacturers.router)
+app.include_router(countries.router)

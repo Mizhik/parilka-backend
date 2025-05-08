@@ -3,12 +3,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.db import get_db
 from app.repository.category import CategoryRepository
+from app.repository.country import CountryRepository
 from app.repository.liquids import LiquidsRepository
 from app.repository.manufacturer import ManufacturerRepository
 from app.repository.product import ProductRepository
 from app.repository.subcategory import SubCategoryRepository
 from app.repository.user import UserRepository
 from app.services.auth import AuthService
+from app.services.country import CountryService
 from app.services.liquids import LiquidsService
 from app.services.manufacturer import ManufacturerService
 from app.services.product import ProductService
@@ -19,7 +21,6 @@ from app.services.subcategory import SubCategoryService
 async def get_user_service(db: AsyncSession = Depends(get_db)):
     user_repository = UserRepository(db)
     return AuthService(db, user_repository)
-
 
 async def get_product_service(db: AsyncSession = Depends(get_db)):
     product_repository = ProductRepository(db)
@@ -37,6 +38,10 @@ async def get_subcategory_service(db: AsyncSession = Depends(get_db)):
 async def get_manufacturer_service(db: AsyncSession = Depends(get_db)):
     manufacturer_repository = ManufacturerRepository(db)
     return ManufacturerService(db, manufacturer_repository)
+
+async def get_country_service(db: AsyncSession = Depends(get_db)):
+    country_repository = CountryRepository(db)
+    return CountryService(db, country_repository)
 
 async def get_liquids_service(db: AsyncSession = Depends(get_db)):
     liquids_service = LiquidsRepository(db)

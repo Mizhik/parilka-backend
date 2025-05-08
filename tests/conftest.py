@@ -8,7 +8,9 @@ from app.models.base_model import Base
 from app.database.db import get_db
 from app.core.settings import Settings
 from httpx import ASGITransport, AsyncClient, Response
+from app.schemas import response
 from app.schemas.category import CategorySchema
+from app.schemas.country import CountryCreateSchema, CountrySchema
 from app.schemas.manufacturer import ManufacturerCreateSchema, ManufacturerSchema
 from app.schemas.response import ResponseSchema
 from asgi import app as fastapi_app
@@ -129,4 +131,30 @@ async def create_manufacturers(client: AsyncClient, manufacturer_payload: Callab
             manufacturer = _validate_response(response, ManufacturerSchema)
             manufacturers.append(manufacturer)
         return manufacturers
+    return _create_multiple
+
+@pytest.fixture(scope="function")
+def country_payload() -> Callable[[], CountryCreateSchema]:
+    def _create_payload():
+        return CountryCreateSchema(
+            name=faker.country()
+        )
+    return _create_payload
+
+@pytest_asyncio.fixture(scope="function")
+async def created_country(client: AsyncClient, country_payload: Callable[[], CountryCreateSchema]):
+    payload = country_payload()
+    response = await client.post("/countries/add", json=payload.model_dump())
+    return _validate_response(response, CountrySchema)
+
+@pytest_asyncio.fixture(scope="function")
+async def create_countries(client: AsyncClient, country_payload: Callable[[], CountryCreateSchema]):
+    async def _create_multiple(count=2):
+        countries = []
+        for _ in range(count):
+            payload = country_payload()
+            response = await client.post("/countries/add", json=payload.model_dump())
+            country = _validate_response(response, CountrySchema)
+            countries.append(country)
+        return countries
     return _create_multiple

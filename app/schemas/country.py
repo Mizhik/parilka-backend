@@ -4,8 +4,15 @@ from pydantic import BaseModel, Field
 
 
 class CountrySchema(BaseModel):
-    id: Optional[UUID] = None
-    name: str = Field(max_length=50)
+    id: UUID
+    name: str
 
     class Config:
         from_attributes = True
+
+class CountryCreateSchema(BaseModel):
+    name: str = Field(max_length=50, min_length=1)
+
+    model_config = {
+        "from_attributes": True
+    }

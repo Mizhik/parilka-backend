@@ -15,7 +15,7 @@ class ManufacturerSchema(BaseModel):
 
 
 class ManufacturerCreateSchema(BaseModel):
-    name: str = Field(max_length=100)
+    name: str = Field(max_length=100, min_length=1)
     model_config = {
         "from_attributes": True
     }
