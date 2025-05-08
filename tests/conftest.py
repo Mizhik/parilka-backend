@@ -1,16 +1,27 @@
 # type: ignore
+from typing import Generator
+import asyncio
+import faker
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from app.models.base_model import Base
 from app.database.db import get_db
 from app.core.settings import Settings
 from httpx import ASGITransport, AsyncClient
+from app.schemas.category import CategorySchema
+from app.schemas.response import ResponseSchema
 from asgi import app as fastapi_app
+import pytest
 
 TEST_DATABASE_URL = Settings().ASYNC_TEST_DATABASE_URL
 
 engine_test = create_async_engine(TEST_DATABASE_URL, future=True, echo=True)
 
+@pytest.fixture(scope="session")
+def event_loop() -> Generator:
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def prepare_database():
@@ -58,8 +69,33 @@ async def client(db_session: AsyncSession):
     fastapi_app.dependency_overrides.clear()
 
 
-# @pytest_asyncio.fixture(autouse=True)
-# async def bind_factories(db_session: AsyncSession):
-#     ProductFactory._meta.sqlalchemy_session = db_session
-#     CategoryFactory._meta.sqlalchemy_session = db_session
-# Add other factories here as needed
+
+@pytest.fixture(scope="function")
+def category_payload() -> CategorySchema:
+    def _create_payload():
+        return CategorySchema(title=faker.Faker().word())
+    return _create_payload
+
+
+@pytest_asyncio.fixture(scope="function")
+async def created_category(client: AsyncClient, category_payload: CategorySchema) -> CategorySchema:
+    payload = category_payload()
+    response = await client.post("/categories/add", json=payload.model_dump())
+    assert response.status_code == 200
+    category = ResponseSchema[CategorySchema].model_validate(response.json())
+    assert not isinstance(category.data, list)
+    return category.data
+
+@pytest_asyncio.fixture(scope="function")
+async def create_categories(client: AsyncClient, category_payload):
+    async def _create_multiple(count=2):
+        categories = []
+        for _ in range(count):
+            payload = category_payload()
+            response = await client.post("/categories/add", json=payload.model_dump())
+            assert response.status_code == 200
+            category = ResponseSchema[CategorySchema].model_validate(response.json())
+            assert not isinstance(category.data, list)
+            categories.append(category.data)
+        return categories
+    return _create_multiple

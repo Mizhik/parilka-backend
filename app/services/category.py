@@ -1,7 +1,9 @@
 from typing import List
 from uuid import UUID 
+from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.models import Category
 from app.repository.category import CategoryRepository
 from app.schemas.category import CategorySchema
 from app.schemas.response import ResponseSchema
@@ -29,6 +31,8 @@ class CategoryService:
     async def edit(self, category_id: UUID, body: CategorySchema):
         if not await self.repository.get_one(id=category_id):
             raise ErrorNotFound(f"Category with id: {category_id} does not exist")
+        if await self.repository.get_one(where=[and_(Category.title == body.title, Category.id != category_id)]):
+            raise DuplicateError(f"Category with title {body.title} already exists")
 
         category = body.model_dump(exclude_unset=True)
         res = await self.repository.update(category, id=category_id)
