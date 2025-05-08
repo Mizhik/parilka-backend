@@ -1,9 +1,7 @@
-import asyncio
 from typing import Awaitable, Callable, List
 from uuid import uuid4
 from httpx import AsyncClient
 import pytest
-from app.routes import categories
 from app.schemas.category import CategorySchema
 from app.schemas.response import ResponseSchema
 

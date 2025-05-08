@@ -1,5 +1,5 @@
 # type: ignore
-from typing import Generator
+from typing import Callable, Generator
 import asyncio
 import faker
 import pytest_asyncio
@@ -9,6 +9,7 @@ from app.database.db import get_db
 from app.core.settings import Settings
 from httpx import ASGITransport, AsyncClient
 from app.schemas.category import CategorySchema
+from app.schemas.manufacturer import ManufacturerCreateSchema, ManufacturerSchema
 from app.schemas.response import ResponseSchema
 from asgi import app as fastapi_app
 import pytest
@@ -95,7 +96,42 @@ async def create_categories(client: AsyncClient, category_payload):
             response = await client.post("/categories/add", json=payload.model_dump())
             assert response.status_code == 200
             category = ResponseSchema[CategorySchema].model_validate(response.json())
+            assert not category.data is None
             assert not isinstance(category.data, list)
             categories.append(category.data)
         return categories
     return _create_multiple
+
+@pytest.fixture(scope="function")
+def manufacturer_payload() -> ManufacturerSchema:
+    def _create_payload():
+        return ManufacturerCreateSchema(
+            name=faker.Faker().company()
+        )
+    return _create_payload
+
+@pytest_asyncio.fixture(scope="function")
+async def created_manufacturer(client: AsyncClient, manufacturer_payload: Callable[[], ManufacturerCreateSchema]):
+    payload = manufacturer_payload()
+    response = await client.post("/manufacturers/add", json=payload.model_dump())
+    assert response.status_code == 200
+    manufacturer = ResponseSchema[ManufacturerSchema].model_validate(response.json())
+    assert not manufacturer.data is None
+    assert not isinstance(manufacturer.data, list)
+    return manufacturer.data
+
+@pytest_asyncio.fixture(scope="function")
+async def create_manufacturers(client: AsyncClient, manufacturer_payload: Callable[[], ManufacturerCreateSchema]):
+    async def _create_multiple(count=2):
+        manufacturers = []
+        for _ in range(count):
+            payload = manufacturer_payload()
+            response = await client.post("/manufacturers/add", json=payload.model_dump())
+            assert response.status_code == 200
+            manufacturer = ResponseSchema[ManufacturerSchema].model_validate(response.json())
+            assert not manufacturer.data is None
+            assert not isinstance(manufacturer.data, list)
+            manufacturers.append(manufacturer.data)
+        return manufacturers
+    return _create_multiple
+

@@ -1,12 +1,15 @@
 from typing import Any, Generic, List, Type, TypeVar
-from sqlalchemy import ColumnExpressionArgument, delete, select, update
+from uuid import UUID
+from sqlalchemy import ColumnExpressionArgument, and_, delete, select, update
+from sqlalchemy.engine import create
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, TypeVar
 
 from sqlalchemy.sql.base import ExecutableOption
 
 from app.models.base_model import Base
-from app.services.errors import ErrorNotFound
+from app.repository.errors import DuplicateError, NotFoundError
+from app.services.errors import HTTPErrorNotFound
 
 
 ModelType = TypeVar("ModelType", bound=Base)
@@ -57,6 +60,11 @@ class BaseRepository(Generic[ModelType]):
         await self.db.refresh(result)
         return result
 
+    async def create_unique(self, body: dict, unique_key: str):
+        if await self.get_one(**{unique_key: body[unique_key]}):
+            raise DuplicateError(f"{self.model.__name__} with {unique_key} '{body[unique_key]}' exists")
+        return await self.create(body)
+
     async def update(self, body: Any, where: List[ColumnExpressionArgument] = [], **params) -> ModelType | None:
         stmt = update(self.model).values(**body).returning(self.model)
 
@@ -71,10 +79,11 @@ class BaseRepository(Generic[ModelType]):
             await self.db.commit()
         return updated_model
 
+
     async def get_one_or_404(self, options: List[ExecutableOption] = [], **params) -> ModelType | None:
         result = await self.get_one(options=options, **params)
         if not result:
-            raise ErrorNotFound
+            raise NotFoundError
         return result
     
     async def delete(self, where: List[ColumnExpressionArgument] = [], **params):
@@ -87,3 +96,19 @@ class BaseRepository(Generic[ModelType]):
 
         await self.db.execute(stmt)
         await self.db.commit()
+
+
+    async def ensure_exists(self, id_: UUID):
+        if not await self.get_one(id=id_):
+            raise NotFoundError(f"{self.model.__name__} with id {id_} does not exist")
+
+    async def ensure_exists_and_unique(self, id_: UUID, unique_field: str, unique_value: Any):
+        await self.ensure_exists(id_)
+
+        conflict_filter = and_(
+            getattr(self.model, unique_field) == unique_value,
+            self.model.id != id_
+        )
+
+        if await self.get_one(where=[conflict_filter]):
+            raise DuplicateError

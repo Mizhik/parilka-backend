@@ -8,7 +8,7 @@ from app.models.models import Product
 from app.repository.product import ProductRepository
 from app.schemas.product import ProductCreateSchema, ProductDetailsSchema, ProductSchema
 from app.schemas.response import ResponseSchema
-from app.services.errors import ErrorNotFound, InternalServerError
+from app.services.errors import HTTPErrorNotFound, HTTPInternalServerError
 from app.utils.mappers import map_product_to_schema
 
 
@@ -35,7 +35,7 @@ class ProductService:
         product = await self.repository.get_one(id=product_id)
         print(product, "32")
         if not product:
-            raise ErrorNotFound(f"Product with id: {product_id} does not exist.")
+            raise HTTPErrorNotFound(f"Product with id: {product_id} does not exist.")
 
         product_schema = map_product_to_schema(product, True)
         print(product_schema, "37")
@@ -48,12 +48,12 @@ class ProductService:
         created_product = await self.repository.create(values)
 
         if not created_product:
-            raise InternalServerError()
+            raise HTTPInternalServerError()
 
         product = await self.repository.get_one(id=created_product.id)
         
         if not product:
-            raise InternalServerError("Failed to get created product")
+            raise HTTPInternalServerError("Failed to get created product")
 
         product_schema = map_product_to_schema(product, True)
 
@@ -61,18 +61,18 @@ class ProductService:
 
     async def edit_product(self, product_id: UUID, body: ProductDetailsSchema):
         if not await self.repository.get_one(id=product_id):
-            raise ErrorNotFound(f"Product with id: {product_id} does not exist.")
+            raise HTTPErrorNotFound(f"Product with id: {product_id} does not exist.")
 
         values = body.dict(exclude_unset=True)
         updated_product = await self.repository.update(values, id=product_id)
 
         if not updated_product:
-            raise InternalServerError()
+            raise HTTPInternalServerError()
 
         product = await self.repository.get_one(id=updated_product.id)
         
         if not product:
-            raise InternalServerError("Failed to get created product")
+            raise HTTPInternalServerError("Failed to get created product")
 
         product_schema = map_product_to_schema(product, True)
 
@@ -80,7 +80,7 @@ class ProductService:
 
     async def delete_product(self, product_id: UUID):
         if not await self.repository.get_one(id=product_id):
-            raise ErrorNotFound(f"Product with id: {product_id} does not exist.")
+            raise HTTPErrorNotFound(f"Product with id: {product_id} does not exist.")
 
         await self.repository.delete(id=product_id)
         return ResponseSchema(data=None, message="Product deleted")

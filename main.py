@@ -9,9 +9,9 @@ from fastapi.openapi.utils import get_openapi
 
 from app.core import settings
 from app.core.settings import config
-from app.routes import auth, categories, healthchecker, products, subcategories
+from app.routes import auth, categories, healthchecker, products, subcategories, manufacturers
 from app.schemas.response import ResponseSchema
-from app.services.errors import BaseError, LoginFailed
+from app.services.errors import BaseHTTPError, HTTPLoginFailed
 
 app = FastAPI(docs_url=None, openapi_url=None, redoc_url=None)
 
@@ -29,8 +29,9 @@ app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(categories.router)
 app.include_router(subcategories.router)
+app.include_router(manufacturers.router)
 
-@app.exception_handler(BaseError)
+@app.exception_handler(BaseHTTPError)
 async def exception_handler(req: Request, ex: HTTPException):
     content = ResponseSchema(message=ex.detail, data={
             "method": req.method,
@@ -49,7 +50,7 @@ def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
     username = settings.config.DOCS_USER
     password = settings.config.DOCS_PASSWORD
     if not(credentials.username == username and credentials.password == password):
-        raise LoginFailed()
+        raise HTTPLoginFailed()
     return credentials.username
 
 @app.get("/docs", include_in_schema=False)

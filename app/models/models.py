@@ -43,7 +43,7 @@ class Product(Base):
         ForeignKey("categories.id", ondelete="CASCADE", name="CategoryProductFK"),
         nullable=False,
     )
-    category: Mapped["Category"] = relationship("Category", back_populates="products")
+    category: Mapped["Category"] = relationship("Category", back_populates="products", lazy="select")
 
     subcategory_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
@@ -57,7 +57,7 @@ class Product(Base):
         ForeignKey("countries.id", ondelete="CASCADE", name="CountryOfOriginProductFK"),
         nullable=False,
     )
-    country: Mapped["Country"] = relationship("Country", back_populates="products")
+    country: Mapped["Country"] = relationship("Country", back_populates="products", lazy="select")
 
     manufacturer_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True),
@@ -65,7 +65,7 @@ class Product(Base):
         nullable=False,
     )
     manufacturer: Mapped["Manufacturer"] = relationship(
-        "Manufacturer", back_populates="products"
+        "Manufacturer", back_populates="products", lazy="select"
     )
 
     attributes: Mapped[list["Attribute"]] = relationship(
