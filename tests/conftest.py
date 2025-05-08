@@ -20,6 +20,14 @@ engine_test = create_async_engine(TEST_DATABASE_URL, future=True, echo=True)
 
 faker = faker_.Faker()
 
+
+def validate_response(response: Response, schema: type[BaseModel]) -> BaseModel:
+    assert response.status_code == 200
+    result = ResponseSchema[schema].model_validate(response.json())
+    assert result.data is not None
+    assert not isinstance(result.data, list)
+    return result.data
+
 @pytest.fixture(scope="session")
 def event_loop() -> Generator:
     loop = asyncio.get_event_loop_policy().new_event_loop()
@@ -123,10 +131,3 @@ async def create_manufacturers(client: AsyncClient, manufacturer_payload: Callab
             manufacturers.append(manufacturer)
         return manufacturers
     return _create_multiple
-
-def validate_response(response: Response, schema: type[BaseModel]) -> BaseModel:
-    assert response.status_code == 200
-    result = ResponseSchema[schema].model_validate(response.json())
-    assert result.data is not None
-    assert not isinstance(result.data, list)
-    return result.data
