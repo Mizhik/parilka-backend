@@ -1,4 +1,5 @@
 from collections import defaultdict
+import decimal
 from uuid import UUID
 from decimal import Decimal
 from pydantic import BaseModel, Field, computed_field, model_validator
@@ -8,6 +9,8 @@ from app.models.enums import AttributeGroupEnum, ProductStatus as StatusEnum
 from app.schemas.image import ImageCreateSchema, ImageSchema
 from app.schemas.attribute import AttributeCreateSchema, AttributeSchema
 from app.schemas.category import CategorySchema
+from app.schemas.subcategory import SubCategorySchema
+
 
 class ProductSchema(BaseModel):
     id: UUID
@@ -21,6 +24,7 @@ class ProductSchema(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ProductDetailsSchema(BaseModel):
     id: UUID
     title: str = Field(min_length=1, max_length=50)
@@ -32,15 +36,15 @@ class ProductDetailsSchema(BaseModel):
     description: str = Field(min_length=1, max_length=255)
     images: List[ImageSchema] = []
     attributes: Dict[AttributeGroupEnum, List[AttributeSchema]] = {}
-    category_id: UUID = Field(exclude=True)
     subcategory_id: Optional[UUID] = Field(default=None, exclude=True)
-    category: CategorySchema 
-    sub_category: Optional[str] = None
+    category: CategorySchema
+    sub_category: Optional[SubCategorySchema] = None
     is_available: bool = Field(default=True)
     status: StatusEnum = StatusEnum.NONE
 
     class Config:
         from_attributes = True
+
 
 class ProductCreateSchema(BaseModel):
     title: str = Field(min_length=1, max_length=50)
@@ -57,20 +61,26 @@ class ProductCreateSchema(BaseModel):
     images: List[ImageCreateSchema] = []
     attributes: List[AttributeCreateSchema] = []
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def check_main_image_count(self) -> Self:
-        if len(self.images) == 0:
+        all_images = [(img, "product") for img in self.images] + [
+            (img, "attribute") for attr in self.attributes for img in attr.images
+        ]
+        if len(all_images) == 0:
             return self
 
-        main_count = 0
-        for image in self.images:
-            if image.is_main:
-                main_count += 1
+        main_images = [img for img, _ in all_images if img.is_main]
 
-        if main_count > 1:
+        if len(main_images) > 1:
             raise ValueError("Product can only have 1 main image")
 
-        if main_count == 0:
-            self.images[0].is_main = True
+        if not main_images:
+            for img, origin in all_images:
+                if origin == "product":
+                    img.is_main = True
+                    break
+                else:
+                    if all_images:
+                        all_images[0][0].is_main = True
 
         return self

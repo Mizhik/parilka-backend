@@ -4,13 +4,21 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.enums import Status
 
-from app.models.models import Category, Country, Image, Manufacturer, Product, SubCategory
+from app.models.models import (
+    Category,
+    Country,
+    Image,
+    Manufacturer,
+    Product,
+    SubCategory,
+)
 from tests.factories.category import create_category
 from tests.factories.country import create_country
 from tests.factories.manufacturer import create_manufacturer
 
 
 faker = faker_.Faker()
+
 
 async def create_product(
     session: AsyncSession,

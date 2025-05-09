@@ -35,6 +35,7 @@ engine_test = create_async_engine(TEST_DATABASE_URL, future=True, echo=True)
 
 faker = faker_.Faker()
 
+
 @pytest.fixture(scope="session")
 def event_loop() -> Generator:
     loop = asyncio.get_event_loop_policy().new_event_loop()
@@ -69,14 +70,14 @@ async def db_session(test_engine):
             await connection.close()
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="function")
 async def test_engine():
     engine = create_async_engine(TEST_DATABASE_URL, echo=True, future=True)
     yield engine
     await engine.dispose()
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="function")
 async def client(db_session: AsyncSession):
     async def override_get_db():
         yield db_session
@@ -104,6 +105,7 @@ def manufacturer_payload() -> Callable[[], ManufacturerCreateSchema]:
 
     return _create_payload
 
+
 @pytest.fixture(scope="function")
 def country_payload() -> Callable[[], CountryCreateSchema]:
     def _create_payload():
@@ -123,25 +125,28 @@ def subcategory_payload() -> Callable[[UUID], SubCategoryCreateSchema]:
 
     return _create_payload
 
+
 @pytest.fixture(scope="function")
 def image_payload():
-    def _create_payload(is_main:bool):
-        return ImageCreateSchema(
-            image_url=faker.word(),
-            is_main=is_main
-        )
+    def _create_payload(is_main: bool):
+        return ImageCreateSchema(image_url=faker.word(), is_main=is_main)
+
     return _create_payload
+
 
 @pytest.fixture(scope="function")
 def attribute_payload():
-    def _create_payload():
+    def _create_payload(images: List[ImageCreateSchema]):
         return AttributeCreateSchema(
-            attribute_group=faker.random_element(elements=[v for v in AttributeGroupEnum]), #type: ignore
+            attribute_group=faker.random_element(
+                elements=[v for v in AttributeGroupEnum]
+            ),  # type: ignore
             value=faker.unique.word(),
             price_modifier=None,
             stock_quantity=faker.random_int(min=1, max=10),
-            images=[]
+            images=[*images],
         )
+
     return _create_payload
 
 
@@ -152,7 +157,7 @@ def product_payload():
         country: Country,
         manufacturer: Manufacturer,
         images: List[ImageCreateSchema],
-        attributes: List[AttributeCreateSchema]
+        attributes: List[AttributeCreateSchema],
     ):
         return ProductCreateSchema(
             title=faker.word(),
@@ -165,45 +170,62 @@ def product_payload():
             is_available=True,
             manufacturer_id=manufacturer.id,
             price=Decimal("20.5"),
-            status=faker.random_element(elements=[v for v in ProductStatus]), #type: ignore
+            status=faker.random_element(elements=[v for v in ProductStatus]),  # type: ignore
             stock_quantity=faker.random_int(min=2, max=30),
-            subcategory_id=None
-
+            subcategory_id=None,
         )
+
     return _create_payload
+
 
 @pytest.fixture(scope="function")
 def manufacturer_factory(db_session: AsyncSession):
     return lambda: create_manufacturer(db_session)
 
+
 @pytest.fixture(scope="function")
 def create_manufacturers(manufacturer_factory: Callable[[], Awaitable[Manufacturer]]):
     return bulk_creator(manufacturer_factory)
+
 
 @pytest.fixture(scope="function")
 def country_factory(db_session: AsyncSession):
     return lambda: create_country(db_session)
 
+
 @pytest.fixture(scope="function")
 def create_countries(country_factory: Callable[[], Awaitable[Country]]):
     return bulk_creator(country_factory)
+
 
 @pytest.fixture(scope="function")
 def category_factory(db_session: AsyncSession):
     return lambda: create_category(db_session)
 
+
 @pytest.fixture(scope="function")
 def create_categories(category_factory: Callable[[], Awaitable[Category]]):
     return bulk_creator(category_factory)
+
 
 @pytest.fixture(scope="function")
 def subcategory_factory(db_session: AsyncSession):
     return lambda category: create_subcategory(db_session, category)
 
+
 @pytest.fixture(scope="function")
-def create_subcategories(subcategory_factory: Callable[[List[Category]], Awaitable[SubCategory]]):
+def create_subcategories(
+    subcategory_factory: Callable[[List[Category]], Awaitable[SubCategory]],
+):
     return bulk_creator_with_args(subcategory_factory)
+
 
 @pytest.fixture(scope="function")
 def product_factory(db_session: AsyncSession):
-    return lambda category, images, attributes, manufacturer: create_product(db_session, manufacturer=manufacturer, category=category, images=images, attributes=attributes)
+    return lambda category, images, attributes, manufacturer: create_product(
+        db_session,
+        manufacturer=manufacturer,
+        category=category,
+        images=images,
+        attributes=attributes,
+    )

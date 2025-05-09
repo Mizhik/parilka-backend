@@ -4,7 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, model_validator
 
 from app.models.enums import AttributeGroupEnum
-from app.schemas.image import ImageSchema
+from app.schemas.image import ImageCreateSchema, ImageSchema
 
 
 class AttributeSchema(BaseModel):
@@ -23,8 +23,9 @@ class AttributeCreateSchema(BaseModel):
     value: str
     price_modifier: Optional[Decimal] = None
     stock_quantity: int
-    images: List[ImageSchema] = []
-    @model_validator(mode='after')
+    images: List[ImageCreateSchema] = []
+
+    @model_validator(mode="after")
     def check_main_image_count(self) -> Self:
         if len(self.images) == 0:
             return self
