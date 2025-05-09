@@ -2,6 +2,7 @@ from typing import Awaitable, Callable, List
 from uuid import uuid4
 from httpx import AsyncClient
 import pytest
+from app.models.models import Category
 from app.schemas.category import CategoryCreateSchema, CategorySchema
 from tests.utils import parse_response
 
@@ -34,10 +35,11 @@ async def test_create_category(
 
 @pytest.mark.asyncio
 async def test_create_duplicate_category(
-    client: AsyncClient, created_category: CategorySchema
+    client: AsyncClient, category_factory: Callable[[], Awaitable[CategorySchema]]
 ):
+    category = await category_factory()
     response = await client.post(
-        "/categories/add", json={"title": created_category.title}
+        "/categories/add", json={"title": category.title}
     )
 
     assert response.status_code == 409
@@ -46,27 +48,30 @@ async def test_create_duplicate_category(
 @pytest.mark.asyncio
 async def test_edit_category(
     client: AsyncClient,
-    created_category: CategorySchema,
+    category_factory: Callable[[], Awaitable[Category]],
     category_payload: Callable[[], CategoryCreateSchema],
 ):
     payload = category_payload()
 
+    category = await category_factory()
+    original_title = category.title
+
     response = await client.patch(
-        f"/categories/edit/{created_category.id}",
-        json=payload.model_dump(exclude_none=True),
+        f"/categories/edit/{category.id}",
+        json=payload.model_dump(),
     )
 
     m = parse_response(response, CategorySchema)
 
     assert not isinstance(m, list)
-    assert m.title != created_category.title
+    assert m.title != original_title
     assert m.title == payload.title
 
     categories = await client.get("/categories")
 
     c = parse_response(categories, List[CategorySchema])
 
-    assert any(m.id == ct.id and created_category.title != ct.title for ct in c)
+    assert any(m.id == ct.id and original_title != ct.title for ct in c), "Edited category not present in GET categories"
 
 
 @pytest.mark.asyncio
@@ -98,8 +103,9 @@ async def test_edit_not_exists_category(
 
 
 @pytest.mark.asyncio
-async def test_delete_category(client: AsyncClient, created_category: CategorySchema):
-    response = await client.delete(f"/categories/delete/{created_category.id}")
+async def test_delete_category(client: AsyncClient, category_factory: Callable[[], Awaitable[Category]]):
+    category = await category_factory()
+    response = await client.delete(f"/categories/delete/{category.id}")
 
     assert response.status_code == 200
 
@@ -107,7 +113,7 @@ async def test_delete_category(client: AsyncClient, created_category: CategorySc
 
     m = parse_response(categories, List[CategorySchema])
 
-    assert any(ct.id != created_category.id for ct in m)
+    assert any(ct.id != category.id for ct in m)
 
 
 @pytest.mark.asyncio

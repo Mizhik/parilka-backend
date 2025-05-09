@@ -1,4 +1,4 @@
-from typing import Callable, Generator, List
+from typing import Awaitable, Callable, Generator
 import asyncio
 from uuid import UUID
 import faker as faker_
@@ -8,12 +8,19 @@ from app.models.base_model import Base
 from app.database.db import get_db
 from app.core.settings import Settings
 from httpx import ASGITransport, AsyncClient
-from app.schemas.category import CategoryCreateSchema, CategorySchema
-from app.schemas.country import CountryCreateSchema, CountrySchema
-from app.schemas.manufacturer import ManufacturerCreateSchema, ManufacturerSchema
-from app.schemas.subcategory import SubCategoryCreateSchema, SubCategorySchema
+from app.models.models import Category, Country, Manufacturer, SubCategory
+from app.schemas.category import CategoryCreateSchema
+from app.schemas.country import CountryCreateSchema
+from app.schemas.manufacturer import ManufacturerCreateSchema
+from app.schemas.subcategory import SubCategoryCreateSchema
 from asgi import app as fastapi_app
 import pytest
+
+from tests.factories.category import create_category
+from tests.factories.country import create_country
+from tests.factories.manufacturer import create_manufacturer
+from tests.factories.subcategory import create_subcategory
+from tests.utils import bulk_creator, bulk_creator_with_args
 
 TEST_DATABASE_URL = Settings().ASYNC_TEST_DATABASE_URL
 
@@ -84,27 +91,29 @@ def category_payload() -> Callable[[], CategoryCreateSchema]:
     return _create_payload
 
 
-@pytest_asyncio.fixture(scope="function")
-async def created_category(
-    client: AsyncClient, category_payload: Callable[[], CategorySchema]
-):
-    payload = category_payload()
-    response = await client.post("/categories/add", json=payload.model_dump())
-    return CategorySchema.model_validate(response.json()["data"])
+# @pytest.fixture(scope="function")
+# def create_category(
+#     client: AsyncClient, category_payload: Callable[[], CategorySchema]
+# ):
+#     async def _create():
+#         payload = category_payload()
+#         response = await client.post("/categories/add", json=payload.model_dump())
+#         return CategorySchema.model_validate(response.json()["data"])
+#     return _create
 
 
-@pytest_asyncio.fixture(scope="function")
-async def create_categories(client: AsyncClient, category_payload):
-    async def _create_multiple(count=2):
-        categories = []
-        for _ in range(count):
-            payload = category_payload()
-            response = await client.post("/categories/add", json=payload.model_dump())
-            category = CategorySchema.model_validate(response.json()["data"])
-            categories.append(category)
-        return categories
-
-    return _create_multiple
+# @pytest.fixture(scope="function")
+# def create_categories(client: AsyncClient, category_payload):
+#     async def _create_multiple(count=2):
+#         categories = []
+#         for _ in range(count):
+#             payload = category_payload()
+#             response = await client.post("/categories/add", json=payload.model_dump())
+#             category = CategorySchema.model_validate(response.json()["data"])
+#             categories.append(category)
+#         return categories
+#
+#     return _create_multiple
 
 
 @pytest.fixture(scope="function")
@@ -115,31 +124,33 @@ def manufacturer_payload() -> Callable[[], ManufacturerCreateSchema]:
     return _create_payload
 
 
-@pytest_asyncio.fixture(scope="function")
-async def created_manufacturer(
-    client: AsyncClient, manufacturer_payload: Callable[[], ManufacturerCreateSchema]
-):
-    payload = manufacturer_payload()
-    response = await client.post("/manufacturers/add", json=payload.model_dump())
-    return ManufacturerSchema.model_validate(response.json()["data"])
+# @pytest.fixture(scope="function")
+# def create_manufacturer(
+#     client: AsyncClient, manufacturer_payload: Callable[[], ManufacturerCreateSchema]
+# ):
+#     async def _create():
+#         payload = manufacturer_payload()
+#         response = await client.post("/manufacturers/add", json=payload.model_dump())
+#         return ManufacturerSchema.model_validate(response.json()["data"])
+#     return _create
 
 
-@pytest_asyncio.fixture(scope="function")
-async def create_manufacturers(
-    client: AsyncClient, manufacturer_payload: Callable[[], ManufacturerCreateSchema]
-):
-    async def _create_multiple(count=2):
-        manufacturers = []
-        for _ in range(count):
-            payload = manufacturer_payload()
-            response = await client.post(
-                "/manufacturers/add", json=payload.model_dump()
-            )
-            manufacturer = ManufacturerSchema.model_validate(response.json()["data"])
-            manufacturers.append(manufacturer)
-        return manufacturers
-
-    return _create_multiple
+# @pytest.fixture(scope="function")
+# def create_manufacturers(
+#     client: AsyncClient, manufacturer_payload: Callable[[], ManufacturerCreateSchema]
+# ):
+#     async def _create_multiple(count=2):
+#         manufacturers = []
+#         for _ in range(count):
+#             payload = manufacturer_payload()
+#             response = await client.post(
+#                 "/manufacturers/add", json=payload.model_dump()
+#             )
+#             manufacturer = ManufacturerSchema.model_validate(response.json()["data"])
+#             manufacturers.append(manufacturer)
+#         return manufacturers
+#
+#     return _create_multiple
 
 
 @pytest.fixture(scope="function")
@@ -150,29 +161,16 @@ def country_payload() -> Callable[[], CountryCreateSchema]:
     return _create_payload
 
 
-@pytest_asyncio.fixture(scope="function")
-async def created_country(
-    client: AsyncClient, country_payload: Callable[[], CountryCreateSchema]
-):
-    payload = country_payload()
-    response = await client.post("/countries/add", json=payload.model_dump())
-    return CountrySchema.model_validate(response.json()["data"])
+# @pytest.fixture(scope="function")
+# def create_country(
+#     client: AsyncClient, country_payload: Callable[[], CountryCreateSchema]
+# ):
+#     async def _create():
+#         payload = country_payload()
+#         response = await client.post("/countries/add", json=payload.model_dump())
+#         return CountrySchema.model_validate(response.json()["data"])
+#     return _create
 
-
-@pytest_asyncio.fixture(scope="function")
-async def create_countries(
-    client: AsyncClient, country_payload: Callable[[], CountryCreateSchema]
-):
-    async def _create_multiple(count=2):
-        countries = []
-        for _ in range(count):
-            payload = country_payload()
-            response = await client.post("/countries/add", json=payload.model_dump())
-            country = CountrySchema.model_validate(response.json()["data"])
-            countries.append(country)
-        return countries
-
-    return _create_multiple
 
 
 @pytest.fixture(scope="function")
@@ -187,35 +185,68 @@ def subcategory_payload() -> Callable[[UUID], SubCategoryCreateSchema]:
     return _create_payload
 
 
-@pytest_asyncio.fixture(scope="function")
-async def create_subcategory(
-    client: AsyncClient,
-    subcategory_payload: Callable[[UUID], SubCategoryCreateSchema],
-):
-    async def _create(category_id: UUID):
-        payload = subcategory_payload(category_id)
-        response = await client.post(
-            "/subcategories/add", json=payload.model_dump(mode="json")
-        )
-        return SubCategorySchema.model_validate(response.json()["data"])
+# @pytest.fixture(scope="function")
+# def create_subcategory(
+#     client: AsyncClient,
+#     subcategory_payload: Callable[[UUID], SubCategoryCreateSchema],
+# ):
+#     async def _create(category_id: UUID):
+#         payload = subcategory_payload(category_id)
+#         response = await client.post(
+#             "/subcategories/add", json=payload.model_dump(mode="json")
+#         )
+#         return SubCategorySchema.model_validate(response.json()["data"])
+#
+#     return _create
+#
 
-    return _create
+# @pytest.fixture(scope="function")
+# def create_subcategories(
+#     client: AsyncClient,
+#     subcategory_payload: Callable[[UUID], SubCategoryCreateSchema],
+# ):
+#     async def _create_multiple(categories: List[CategorySchema]):
+#         subcats = []
+#         for idx in range(len(categories)):
+#             payload = subcategory_payload(categories[idx].id)
+#             response = await client.post(
+#                 "/subcategories/add", json=payload.model_dump()
+#             )
+#             subcat = SubCategorySchema.model_validate(response.json()["data"])
+#             subcats.append(subcat)
+#         return subcats
+#
+#     return _create_multiple
 
 
-@pytest_asyncio.fixture(scope="function")
-async def create_subcategories(
-    client: AsyncClient,
-    subcategory_payload: Callable[[UUID], SubCategoryCreateSchema],
-):
-    async def _create_multiple(categories: List[CategorySchema]):
-        subcats = []
-        for idx in range(len(categories)):
-            payload = subcategory_payload(categories[idx].id)
-            response = await client.post(
-                "/subcategories/add", json=payload.model_dump()
-            )
-            subcat = SubCategorySchema.model_validate(response.json()["data"])
-            subcats.append(subcat)
-        return subcats
+@pytest.fixture(scope="function")
+def manufacturer_factory(db_session: AsyncSession):
+    return lambda: create_manufacturer(db_session)
 
-    return _create_multiple
+@pytest.fixture(scope="function")
+def create_manufacturers(manufacturer_factory: Callable[[], Awaitable[Manufacturer]]):
+    return bulk_creator(manufacturer_factory)
+
+@pytest.fixture(scope="function")
+def country_factory(db_session: AsyncSession):
+    return lambda: create_country(db_session)
+
+@pytest.fixture(scope="function")
+def create_countries(country_factory: Callable[[], Awaitable[Country]]):
+    return bulk_creator(country_factory)
+
+@pytest.fixture(scope="function")
+def category_factory(db_session: AsyncSession):
+    return lambda: create_category(db_session)
+
+@pytest.fixture(scope="function")
+def create_categories(category_factory: Callable[[], Awaitable[Category]]):
+    return bulk_creator(category_factory)
+
+@pytest.fixture(scope="function")
+def subcategory_factory(db_session: AsyncSession):
+    return lambda category: create_subcategory(db_session, category)
+
+@pytest.fixture(scope="function")
+def create_subcategories(subcategory_factory: Callable[[Category], Awaitable[SubCategory]]):
+    return bulk_creator_with_args(subcategory_factory)

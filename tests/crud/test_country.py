@@ -2,7 +2,9 @@ from typing import Awaitable, Callable, List
 from uuid import uuid4
 from httpx import AsyncClient
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.models import Country
 from app.schemas.country import CountryCreateSchema, CountrySchema
 from tests.utils import parse_response
 
@@ -38,40 +40,42 @@ async def test_create_country(
 
 @pytest.mark.asyncio
 async def test_create_duplicate_country(
-    client: AsyncClient, created_country: CountrySchema
+    client: AsyncClient, country_factory: Callable[[], Awaitable[CountrySchema]]
 ):
-    res = await client.post("/countries/add", json={"name": created_country.name})
+    country = await country_factory()
+    res = await client.post("/countries/add", json={"name": country.name})
 
     assert res.status_code == 409
 
 
 @pytest.mark.asyncio
-async def test_edit_category(
+async def test_edit_country(
     client: AsyncClient,
-    created_country: CountrySchema,
-    country_payload: Callable[[], CountryCreateSchema],
+    country_factory: Callable[[], Awaitable[Country]],
 ):
-    payload = country_payload()
+    country = await country_factory()
+    original_name = country.name
+    payload = {"name": "Estonia"}
     res = await client.patch(
-        f"/countries/edit/{created_country.id}", json=payload.model_dump()
+        f"/countries/edit/{country.id}", json={"name": "Estonia"}
     )
 
     m = parse_response(res, CountrySchema)
     assert not isinstance(m, list)
-    assert created_country.name != m.name
-    assert m.name == payload.name
+    assert original_name != m.name
+    assert m.name == payload["name"]
 
     countries = await client.get("/countries")
 
     c = parse_response(countries, List[CountrySchema])
 
     assert isinstance(c, list)
-    assert any(ct.id == m.id and ct.name == payload.name for ct in c)
+    assert any(ct.id == m.id and ct.name == payload["name"] for ct in c)
 
 
 @pytest.mark.asyncio
 async def test_edit_duplicate_country(
-    client: AsyncClient, create_countries: Callable[[], Awaitable[List[CountrySchema]]]
+    client: AsyncClient, create_countries: Callable[[], Awaitable[List[Country]]]
 ):
     countries = await create_countries()
     c1, c2 = countries
@@ -94,15 +98,17 @@ async def test_edit_non_existent(
 
 
 @pytest.mark.asyncio
-async def test_delete_country(client: AsyncClient, created_country: CountrySchema):
-    res = await client.delete(f"/countries/delete/{created_country.id}")
+async def test_delete_country(client: AsyncClient, country_factory: Callable[[], Awaitable[Country]]):
+    country = await country_factory()
+
+    res = await client.delete(f"/countries/delete/{country.id}")
     assert res.status_code == 200
 
     countries = await client.get("/countries")
 
     m = parse_response(countries, List[CountrySchema])
 
-    assert any(created_country.id != ct.id for ct in m)
+    assert any(country.id != ct.id for ct in m)
 
 
 @pytest.mark.asyncio

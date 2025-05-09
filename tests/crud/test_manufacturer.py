@@ -2,6 +2,7 @@ from typing import Awaitable, Callable, List
 from uuid import uuid4
 from httpx import AsyncClient
 import pytest
+from app.models.models import Manufacturer
 from app.schemas.manufacturer import ManufacturerCreateSchema, ManufacturerSchema
 from tests.utils import parse_response
 
@@ -35,9 +36,10 @@ async def test_create_manufacturer(
 
 @pytest.mark.asyncio
 async def test_create_duplicate_manufacturer(
-    client: AsyncClient, created_manufacturer: ManufacturerSchema
+    client: AsyncClient, manufacturer_factory: Callable[[], Awaitable[Manufacturer]]
 ):
-    payload = ManufacturerCreateSchema(name=created_manufacturer.name)
+    manufacturer = await manufacturer_factory()
+    payload = ManufacturerCreateSchema(name=manufacturer.name)
     res = await client.post("/manufacturers/add", json=payload.model_dump())
     assert res.status_code == 409
 
@@ -45,24 +47,26 @@ async def test_create_duplicate_manufacturer(
 @pytest.mark.asyncio
 async def test_edit_manufacturer(
     client: AsyncClient,
-    created_manufacturer: ManufacturerSchema,
+    manufacturer_factory: Callable[[], Awaitable[Manufacturer]],
     manufacturer_payload: Callable[[], ManufacturerCreateSchema],
 ):
     payload = manufacturer_payload()
+    manufacturer = await manufacturer_factory()
+    original_name = manufacturer.name
     res = await client.patch(
-        f"/manufacturers/edit/{created_manufacturer.id}", json=payload.model_dump()
+        f"/manufacturers/edit/{manufacturer.id}", json=payload.model_dump()
     )
     m = parse_response(res, ManufacturerSchema)
 
     assert not isinstance(m, list)
-    assert m.name != created_manufacturer.name
+    assert m.name != original_name
     assert m.name == payload.name
 
     manufacturers = await client.get("/manufacturers")
 
     mf = parse_response(manufacturers, List[ManufacturerSchema])
 
-    assert any(m.id == mfr.id and created_manufacturer.name != mfr.name for mfr in mf)
+    assert any(m.id == mfr.id and original_name != mfr.name for mfr in mf)
 
 
 @pytest.mark.asyncio
@@ -92,9 +96,11 @@ async def test_edit_non_existent_manufacturer(
 
 @pytest.mark.asyncio
 async def test_delete_manufacturer(
-    client: AsyncClient, created_manufacturer: ManufacturerSchema
+    client: AsyncClient, 
+    manufacturer_factory: Callable[[], Awaitable[Manufacturer]],
 ):
-    res = await client.delete(f"/manufacturers/delete/{created_manufacturer.id}")
+    manufacturer = await manufacturer_factory()
+    res = await client.delete(f"/manufacturers/delete/{manufacturer.id}")
 
     assert res.status_code == 200
 
@@ -102,7 +108,7 @@ async def test_delete_manufacturer(
 
     m = parse_response(manufacturers, List[ManufacturerSchema])
 
-    assert any(created_manufacturer.id != mfr.id for mfr in m)
+    assert any(manufacturer.id != mfr.id for mfr in m)
 
 
 @pytest.mark.asyncio
