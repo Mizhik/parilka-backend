@@ -4,7 +4,16 @@ from pydantic import BaseModel, Field
 
 
 class ImageSchema(BaseModel):
-    id: Optional[UUID] = None
+    id: UUID
+    image_url: str
+    is_main: bool
+    product_id: Optional[UUID] = None
+    attribute_id: Optional[UUID] = None
+
+    class Config:
+        from_attributes = True
+
+class ImageCreateSchema(BaseModel):
     image_url: str
     is_main: bool = False
     product_id: Optional[UUID] = None
@@ -12,3 +21,4 @@ class ImageSchema(BaseModel):
 
     class Config:
         from_attributes = True
+

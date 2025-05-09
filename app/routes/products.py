@@ -37,7 +37,7 @@ async def get_product(
     return await product_service.get_one_product(product_id=product_id)
 
 
-@router.post("/add", response_model=ResponseSchema[ProductCreateSchema])
+@router.post("/add", response_model=ResponseSchema[ProductDetailsSchema])
 async def create(
         body: ProductCreateSchema,
         product_service: ProductService = Depends(get_product_service)
@@ -45,14 +45,14 @@ async def create(
     return await product_service.create_product(body)
 
 
-@router.patch("/edit/{product_id}", response_model=ResponseSchema[ProductDetailsSchema])
-async def edit(
-        product_id: UUID,
-        body: ProductDetailsSchema,
-        product_service: ProductService = Depends(get_product_service)
-):
-    return await product_service.edit_product(product_id, body)
-
+# @router.patch("/edit/{product_id}", response_model=ResponseSchema[ProductDetailsSchema])
+# async def edit(
+#         product_id: UUID,
+#         body: ProductDetailsSchema,
+#         product_service: ProductService = Depends(get_product_service)
+# ):
+#     return await product_service.edit_product(product_id, body)
+#
 
 @router.delete("/delete/{product_id}", response_model=ResponseSchema)
 async def delete(

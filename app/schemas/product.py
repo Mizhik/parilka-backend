@@ -1,46 +1,62 @@
+from collections import defaultdict
 from uuid import UUID
 from decimal import Decimal
-from pydantic import BaseModel, Field, model_validator
-from typing import List, Optional, Self
+from pydantic import BaseModel, Field, computed_field, model_validator
+from typing import Dict, List, Optional, Self
 
-from pydantic.json_schema import SkipJsonSchema
-
-from app.models.enums import ProductStatus as StatusEnum
-from app.schemas.image import ImageSchema
-from app.schemas.attribute import AttributeSchema
+from app.models.enums import AttributeGroupEnum, ProductStatus as StatusEnum
+from app.schemas.image import ImageCreateSchema, ImageSchema
+from app.schemas.attribute import AttributeCreateSchema, AttributeSchema
+from app.schemas.category import CategorySchema
 
 class ProductSchema(BaseModel):
-    id: Optional[UUID] = None
+    id: UUID
     title: str = Field(min_length=1, max_length=50)
     price: Decimal = Field(gt=0)
     main_image: Optional[ImageSchema] = None
     discount_price: Optional[Decimal] = Field(default=None, gt=0)
     is_available: bool = Field(default=True)
     status: StatusEnum = StatusEnum.NONE
-    category: Optional[str] = None
-    sub_category: Optional[str] = None
 
     class Config:
         from_attributes = True
 
-class ProductDetailsSchema(ProductSchema):
-    main_image: SkipJsonSchema[Optional[ImageSchema]] = Field(default=None, exclude=True)
+class ProductDetailsSchema(BaseModel):
+    id: UUID
+    title: str = Field(min_length=1, max_length=50)
+    price: Decimal = Field(gt=0)
     stock_quantity: int = Field(ge=0)
     country_of_origin_id: UUID
     manufacturer_id: UUID
     stock_quantity: int = Field(ge=0)
     description: str = Field(min_length=1, max_length=255)
     images: List[ImageSchema] = []
-    attributes: List[AttributeSchema] = []
-    category_id: UUID
-    subcategory_id: Optional[UUID] = None
+    attributes: Dict[AttributeGroupEnum, List[AttributeSchema]] = {}
+    category_id: UUID = Field(exclude=True)
+    subcategory_id: Optional[UUID] = Field(default=None, exclude=True)
+    category: CategorySchema 
+    sub_category: Optional[str] = None
+    is_available: bool = Field(default=True)
+    status: StatusEnum = StatusEnum.NONE
 
-class ProductCreateSchema(ProductDetailsSchema):
-    id: SkipJsonSchema[Optional[UUID]] = Field(default=None, exclude=True)
-    category: SkipJsonSchema[Optional[str]] = Field(default=None, exclude=True)
-    sub_category: SkipJsonSchema[Optional[str]] = Field(default=None, exclude=True)
+    class Config:
+        from_attributes = True
+
+class ProductCreateSchema(BaseModel):
+    title: str = Field(min_length=1, max_length=50)
+    price: Decimal = Field(gt=0)
     category_id: UUID
     subcategory_id: Optional[UUID] = None
+    discount_price: Optional[Decimal] = Field(default=None, gt=0)
+    is_available: bool = Field(default=True)
+    status: StatusEnum = StatusEnum.NONE
+    stock_quantity: int = Field(ge=0)
+    country_of_origin_id: UUID
+    manufacturer_id: UUID
+    description: str = Field(min_length=1, max_length=255)
+    images: List[ImageCreateSchema] = []
+    attributes: List[AttributeCreateSchema] = []
+
     @model_validator(mode='after')
     def check_main_image_count(self) -> Self:
         if len(self.images) == 0:

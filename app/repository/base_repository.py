@@ -18,16 +18,17 @@ class BaseRepository(Generic[ModelType]):
     def __init__(self, db: AsyncSession, model: Type[ModelType],  lazyopts: List[ExecutableOption] = []):
         self.db = db
         self.model = model
-        self.lazyopts = lazyopts 
+        self.lazyopts_ = lazyopts 
 
     async def get_many(
         self, 
         where: List[ColumnExpressionArgument] = [],
         offset: Optional[int] = None, 
         limit: Optional[int] = None,
+        lazyopts: Optional[List[ExecutableOption]] = None,
         **params,
     ) -> list[ModelType]:
-        stmt = select(self.model).options(*self.lazyopts)
+        stmt = select(self.model).options(*(lazyopts or self.lazyopts_))
 
         if where:
             stmt = stmt.where(*where)
@@ -42,7 +43,7 @@ class BaseRepository(Generic[ModelType]):
         return list(result.scalars().all())
 
     async def get_one(self, where: List[ColumnExpressionArgument] = [], **params) -> ModelType | None:
-        query = select(self.model).options(*self.lazyopts)
+        query = select(self.model).options(*self.lazyopts_)
 
         if where:
             query = query.where(*where)
