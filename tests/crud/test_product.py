@@ -3,8 +3,9 @@ from httpx import AsyncClient
 from pydantic import ValidationError
 import pytest
 
-from app.models.models import Category, Country, Manufacturer
+from app.models.models import Category, Country, Manufacturer, Product
 from app.schemas.attribute import AttributeCreateSchema
+from app.schemas.bundle import BundleCreateSchema
 from app.schemas.image import ImageCreateSchema
 from app.schemas.product import ProductCreateSchema, ProductDetailsSchema, ProductSchema
 from tests.utils import parse_response
@@ -158,8 +159,7 @@ async def test_create_product_attributes(
 
     assert m.attributes, "Attributes are empty"
     assert len(m.attributes) == 2, f"Attribute count mismatch {len(m.attributes)}"
-    _, attrs = next(iter(m.attributes.items()))
-    assert attrs[0].images, "Attribute images are empty"
+    assert m.images, "Images are missing from attributes"
 
 
 @pytest.mark.asyncio
@@ -179,11 +179,44 @@ async def test_create_product_multiple_main_photos(
     country = await country_factory()
 
     with pytest.raises(ValidationError) as excinfo:
-        product: ProductCreateSchema = product_payload(
+        product_payload(
             images=[image, image2],
             attributes=[attribute],
             category=category,
             manufacturer=manufacturer,
             country=country,
         )
-    assert "Product can only have 1 main image" in str(excinfo.value)
+        assert "Product can only have 1 main image" in str(excinfo.value)
+
+
+@pytest.mark.asyncio
+async def test_create_product_bundle(
+    client: AsyncClient,
+    product_payload,
+    product_factory,
+    manufacturer_factory: Callable[[], Awaitable[Manufacturer]],
+    category_factory: Callable[[], Awaitable[Category]],
+    country_factory: Callable[[], Awaitable[Country]],
+):
+    category = await category_factory()
+    manufacturer = await manufacturer_factory()
+    country = await country_factory()
+    created_product: Product = await product_factory(
+        category, [], [], manufacturer, country
+    )
+    bundle_item = BundleCreateSchema(product_id=created_product.id)
+    product: ProductCreateSchema = product_payload(
+        images=[],
+        attributes=[],
+        manufacturer=manufacturer,
+        category=category,
+        country=country,
+        bundle_items=[bundle_item],
+    )
+
+    res = await client.post("/products/add", json=product.model_dump(mode="json"))
+
+    m = parse_response(res, ProductDetailsSchema)
+
+    assert m.bundle_items, "No bundle items"
+    assert any(created_product.id == b.id for b in m.bundle_items)

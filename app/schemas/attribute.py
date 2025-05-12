@@ -18,6 +18,16 @@ class AttributeSchema(BaseModel):
         from_attributes = True
 
 
+class AttributeProductSchema(BaseModel):
+    id: UUID
+    value: str
+    price_modifier: Optional[Decimal] = None
+    stock_quantity: int
+
+    class Config:
+        from_attributes = True
+
+
 class AttributeCreateSchema(BaseModel):
     attribute_group: AttributeGroupEnum
     value: str

@@ -11,8 +11,15 @@ from app.database.db import get_db
 from app.core.settings import Settings
 from httpx import ASGITransport, AsyncClient
 from app.models.enums import AttributeGroupEnum, ProductStatus, Status
-from app.models.models import Category, Country, Manufacturer, SubCategory
+from app.models.models import (
+    BundleContent,
+    Category,
+    Country,
+    Manufacturer,
+    SubCategory,
+)
 from app.schemas.attribute import AttributeCreateSchema
+from app.schemas.bundle import BundleCreateSchema
 from app.schemas.category import CategoryCreateSchema
 from app.schemas.country import CountryCreateSchema
 from app.schemas.image import ImageCreateSchema, ImageSchema
@@ -158,6 +165,7 @@ def product_payload():
         manufacturer: Manufacturer,
         images: List[ImageCreateSchema],
         attributes: List[AttributeCreateSchema],
+        bundle_items: List[BundleCreateSchema] = [],
     ):
         return ProductCreateSchema(
             title=faker.word(),
@@ -173,6 +181,7 @@ def product_payload():
             status=faker.random_element(elements=[v for v in ProductStatus]),  # type: ignore
             stock_quantity=faker.random_int(min=2, max=30),
             subcategory_id=None,
+            bundle_items=bundle_items,
         )
 
     return _create_payload
@@ -222,10 +231,11 @@ def create_subcategories(
 
 @pytest.fixture(scope="function")
 def product_factory(db_session: AsyncSession):
-    return lambda category, images, attributes, manufacturer: create_product(
+    return lambda category, images, attributes, manufacturer, country: create_product(
         db_session,
         manufacturer=manufacturer,
         category=category,
         images=images,
         attributes=attributes,
+        country=country,
     )

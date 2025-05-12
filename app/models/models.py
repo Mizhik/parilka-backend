@@ -13,6 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from sqlalchemy.sql.operators import as_
 from app.models.enums import (
     AttributeGroupEnum,
     Status,
@@ -36,6 +37,7 @@ class Product(Base):
     )
     stock_quantity: Mapped[int] = mapped_column(Integer, nullable=True)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_bundle: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[StatusEnum] = mapped_column(
         "status", Enum(StatusEnum), default=StatusEnum.NONE
     )
@@ -91,6 +93,14 @@ class Product(Base):
         cascade="all, delete-orphan",
     )
 
+    bundle_items: Mapped[list["BundleContent"]] = relationship(
+        "BundleContent",
+        foreign_keys="BundleContent.bundle_id",
+        back_populates="bundle",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
     @model_validator(mode="after")
     def validate_discount_price(self):
         if self.status == StatusEnum.DISCOUNT:
@@ -101,6 +111,20 @@ class Product(Base):
             if self.discount_price >= self.price:
                 raise ValueError("discount_price must be less than price.")
         return self
+
+
+class BundleContent(Base):
+    __tablename__ = "bundle_contents"
+    bundle_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE")
+    )
+    product_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE")
+    )
+    bundle = relationship(
+        "Product", foreign_keys=[bundle_id], back_populates="bundle_items"
+    )
+    product = relationship("Product", foreign_keys=[product_id])
 
 
 class Image(Base):

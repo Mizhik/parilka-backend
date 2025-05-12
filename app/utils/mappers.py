@@ -5,7 +5,7 @@ from app.models.models import Product
 from app.schemas.category import CategorySchema
 from app.schemas.product import ProductDetailsSchema, ProductSchema
 from app.schemas.image import ImageSchema
-from app.schemas.attribute import AttributeSchema
+from app.schemas.attribute import AttributeProductSchema, AttributeSchema
 from app.schemas.subcategory import SubCategorySchema
 
 
@@ -34,9 +34,19 @@ def map_product_to_schema(product: Product) -> ProductSchema:
 
 
 def map_product_to_detailed_schema(product: Product) -> ProductDetailsSchema:
-    tmp_dict: Dict[AttributeGroupEnum, List[AttributeSchema]] = defaultdict(list)
+    bundle_items = [
+        map_product_to_schema(bundle.product) for bundle in product.bundle_items
+    ]
+    images = [ImageSchema.model_validate(img) for img in product.images] + [
+        ImageSchema.model_validate(img)
+        for attr in product.attributes
+        for img in (attr.images or [])
+    ]
+    tmp_dict: Dict[AttributeGroupEnum, List[AttributeProductSchema]] = defaultdict(list)
     for attr in product.attributes:
-        tmp_dict[attr.attribute_group].append(AttributeSchema.model_validate(attr))
+        tmp_dict[attr.attribute_group].append(
+            AttributeProductSchema.model_validate(attr)
+        )
 
     return ProductDetailsSchema(
         id=product.id,
@@ -49,11 +59,9 @@ def map_product_to_detailed_schema(product: Product) -> ProductDetailsSchema:
         status=product.status,
         country_of_origin_id=product.country_of_origin_id,
         manufacturer_id=product.manufacturer_id,
-        images=[
-            ImageSchema.model_validate(img, from_attributes=True)
-            for img in product.images
-        ],
+        images=images,
         attributes=dict(tmp_dict),
+        bundle_items=bundle_items,
         subcategory_id=product.subcategory_id,
         sub_category=SubCategorySchema.model_validate(product.subcategory)
         if product.subcategory is not None

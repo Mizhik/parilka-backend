@@ -2,7 +2,7 @@ import faker as faker_
 from ast import Attribute
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.enums import Status
+from app.models.enums import ProductStatus, Status
 
 from app.models.models import (
     Category,
@@ -40,7 +40,7 @@ async def create_product(
         price=faker.random_int(min=10, max=300),
         stock_quantity=10,
         is_available=True,
-        status=faker.random_choice(elements=[v for v in Status]),
+        status=faker.random_element(elements=[v for v in ProductStatus]),
         category=category,
         subcategory=subcategory,
         country=country,

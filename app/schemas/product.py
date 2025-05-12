@@ -1,13 +1,15 @@
-from collections import defaultdict
-import decimal
 from uuid import UUID
 from decimal import Decimal
-from pydantic import BaseModel, Field, computed_field, model_validator
+from pydantic import BaseModel, Field, model_validator
 from typing import Dict, List, Optional, Self
 
 from app.models.enums import AttributeGroupEnum, ProductStatus as StatusEnum
+from app.schemas.bundle import BundleCreateSchema
 from app.schemas.image import ImageCreateSchema, ImageSchema
-from app.schemas.attribute import AttributeCreateSchema, AttributeSchema
+from app.schemas.attribute import (
+    AttributeCreateSchema,
+    AttributeProductSchema,
+)
 from app.schemas.category import CategorySchema
 from app.schemas.subcategory import SubCategorySchema
 
@@ -35,12 +37,13 @@ class ProductDetailsSchema(BaseModel):
     stock_quantity: int = Field(ge=0)
     description: str = Field(min_length=1, max_length=255)
     images: List[ImageSchema] = []
-    attributes: Dict[AttributeGroupEnum, List[AttributeSchema]] = {}
+    attributes: Dict[AttributeGroupEnum, List[AttributeProductSchema]] = {}
     subcategory_id: Optional[UUID] = Field(default=None, exclude=True)
     category: CategorySchema
     sub_category: Optional[SubCategorySchema] = None
     is_available: bool = Field(default=True)
     status: StatusEnum = StatusEnum.NONE
+    bundle_items: List[ProductSchema] = []
 
     class Config:
         from_attributes = True
@@ -53,6 +56,7 @@ class ProductCreateSchema(BaseModel):
     subcategory_id: Optional[UUID] = None
     discount_price: Optional[Decimal] = Field(default=None, gt=0)
     is_available: bool = Field(default=True)
+    is_bundle: bool = False
     status: StatusEnum = StatusEnum.NONE
     stock_quantity: int = Field(ge=0)
     country_of_origin_id: UUID
@@ -60,6 +64,7 @@ class ProductCreateSchema(BaseModel):
     description: str = Field(min_length=1, max_length=255)
     images: List[ImageCreateSchema] = []
     attributes: List[AttributeCreateSchema] = []
+    bundle_items: List[BundleCreateSchema] = []
 
     @model_validator(mode="after")
     def check_main_image_count(self) -> Self:

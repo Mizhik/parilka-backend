@@ -5,16 +5,18 @@ from app.schemas.response import ResponseSchema
 
 
 def parse_response(response: Response, schema_type):
-    assert response.status_code == 200
+    assert response.status_code == 200, f"Response status {response.status_code}"
     parsed = ResponseSchema[schema_type].model_validate(response.json())
-    assert parsed.data is not None
+    assert parsed.data is not None, "No data"
     if hasattr(schema_type, "__origin__") and issubclass(
         schema_type.__origin__, Iterable
     ):
         item_type = schema_type.__args__[0]
-        assert all(isinstance(item, item_type) for item in parsed.data)
+        assert all(isinstance(item, item_type) for item in parsed.data), (
+            "Schema mismatch"
+        )
     else:
-        assert isinstance(parsed.data, schema_type)
+        assert isinstance(parsed.data, schema_type), "Shema mismatch"
     return parsed.data
 
 
