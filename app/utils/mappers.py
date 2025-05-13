@@ -1,11 +1,11 @@
 from collections import defaultdict
-from typing import Dict, List, Union
+from typing import Dict, List
 from app.models.enums import AttributeGroupEnum
 from app.models.models import Product
 from app.schemas.category import CategorySchema
 from app.schemas.product import ProductDetailsSchema, ProductSchema
 from app.schemas.image import ImageSchema
-from app.schemas.attribute import AttributeProductSchema, AttributeSchema
+from app.schemas.attribute import AttributeProductSchema
 from app.schemas.subcategory import SubCategorySchema
 
 
@@ -33,6 +33,7 @@ def map_product_to_schema(product: Product) -> ProductSchema:
     )
 
 
+# TODO: Quantity should be calculated from attributes, if there are any
 def map_product_to_detailed_schema(product: Product) -> ProductDetailsSchema:
     bundle_items = [
         map_product_to_schema(bundle.product) for bundle in product.bundle_items

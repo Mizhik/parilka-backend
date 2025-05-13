@@ -1,9 +1,10 @@
 from decimal import Decimal
+from enum import auto
+from asgi_lifespan import LifespanManager
 from typing import Awaitable, Callable, Generator, List
 import asyncio
 from uuid import UUID
 import faker as faker_
-from faker import providers
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from app.models.base_model import Base
@@ -38,25 +39,27 @@ from tests.utils import bulk_creator, bulk_creator_with_args
 
 TEST_DATABASE_URL = Settings().ASYNC_TEST_DATABASE_URL
 
-engine_test = create_async_engine(TEST_DATABASE_URL, future=True, echo=True)
 
 faker = faker_.Faker()
 
 
 @pytest.fixture(scope="session")
-def event_loop() -> Generator:
-    loop = asyncio.get_event_loop_policy().new_event_loop()
+def event_loop():
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
     yield loop
     loop.close()
 
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def prepare_database():
-    async with engine_test.begin() as conn:
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def prepare_database(test_engine):
+    async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     yield
-    async with engine_test.begin() as conn:
+    async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
 
@@ -77,7 +80,7 @@ async def db_session(test_engine):
             await connection.close()
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest_asyncio.fixture(scope="session")
 async def test_engine():
     engine = create_async_engine(TEST_DATABASE_URL, echo=True, future=True)
     yield engine
@@ -90,10 +93,11 @@ async def client(db_session: AsyncSession):
         yield db_session
 
     fastapi_app.dependency_overrides[get_db] = override_get_db
-    async with AsyncClient(
-        transport=ASGITransport(app=fastapi_app), base_url="http://test"
-    ) as client:
-        yield client
+    async with LifespanManager(fastapi_app) as manager:
+        async with AsyncClient(
+            transport=ASGITransport(app=manager.app), base_url="http://test"
+        ) as client:
+            yield client
     fastapi_app.dependency_overrides.clear()
 
 

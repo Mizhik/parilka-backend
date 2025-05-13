@@ -24,13 +24,16 @@ class Settings(BaseSettings):
     DOCS_USER: str = "user"
     DOCS_PASSWORD: str = "password"
 
+    REDIS_LOCAL_PORT: int = 6379
+    REDIS_HOST: str = "redis"
+
     @property
     def ASYNC_DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     @property
     def SYNC_DATABASE_URL(self) -> str:
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST_SYNC}:{self.POSTGRES_LOCAL_PORT}/{self.POSTGRES_DB}"
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_LOCAL_PORT}/{self.POSTGRES_DB}"
 
     @property
     def ASYNC_TEST_DATABASE_URL(self) -> str:
@@ -43,6 +46,10 @@ class Settings(BaseSettings):
     @property
     def ALLOWED_ORIGINS_LIST(self) -> list:
         return self.STR_ALLOWED_ORIGINS.split(",")
+
+    @property
+    def REDIS_URL(self) -> str:
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_LOCAL_PORT}"
 
     model_config = SettingsConfigDict(
         extra="ignore", env_file=".env", env_file_encoding="utf-8"

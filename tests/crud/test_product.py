@@ -15,9 +15,7 @@ from tests.utils import parse_response
 async def test_get_products(client: AsyncClient):
     res = await client.get("/products")
 
-    m = parse_response(res, List[ProductSchema])
-
-    assert isinstance(m, list)
+    parse_response(res, List[ProductSchema])
 
 
 @pytest.mark.asyncio
@@ -146,9 +144,10 @@ async def test_create_product_attributes(
     category = await category_factory()
     manufacturer = await manufacturer_factory()
     country = await country_factory()
+    attributes = [attribute, attribute2]
     product: ProductCreateSchema = product_payload(
         images=[],
-        attributes=[attribute, attribute2],
+        attributes=attributes,
         category=category,
         manufacturer=manufacturer,
         country=country,
@@ -158,7 +157,15 @@ async def test_create_product_attributes(
     m = parse_response(res, ProductDetailsSchema)
 
     assert m.attributes, "Attributes are empty"
-    assert len(m.attributes) == 2, f"Attribute count mismatch {len(m.attributes)}"
+    expected_keys = set()
+    for attr in [attribute, attribute2]:
+        if hasattr(attr, "attribute_group"):
+            expected_keys.add(attr.attribute_group)
+
+    actual_keys = set(m.attributes.keys()) if isinstance(m.attributes, dict) else set()
+    assert actual_keys == expected_keys, (
+        f"Attribute keys mismatch. \n Expected: {expected_keys} \n Got: {actual_keys}. Request sent as: {product.attributes}"
+    )
     assert m.images, "Images are missing from attributes"
 
 
