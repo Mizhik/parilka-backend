@@ -1,4 +1,5 @@
 import faker as faker_
+import random
 from ast import Attribute
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,7 +41,7 @@ async def create_product(
         price=faker.random_int(min=10, max=300),
         stock_quantity=10,
         is_available=True,
-        status=faker.random_element(elements=[v for v in ProductStatus]),
+        status=random.choice([v.value for v in ProductStatus]),
         category=category,
         subcategory=subcategory,
         country=country,

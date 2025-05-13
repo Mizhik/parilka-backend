@@ -22,7 +22,7 @@ async def get_popular_products(
 
 
 @router.get("", response_model=ResponseSchema[List[ProductSchema]])
-@cache(expire=60)
+@cache(expire=60 * 5)
 async def get_products(
     offset: Optional[int] = None,
     limit: Optional[int] = None,
@@ -32,6 +32,7 @@ async def get_products(
 
 
 @router.get("/{product_id}", response_model=ResponseSchema[ProductDetailsSchema])
+@cache(expire=60 * 2)
 async def get_product(
     product_id: UUID, product_service: ProductService = Depends(get_product_service)
 ):

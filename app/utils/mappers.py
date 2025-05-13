@@ -30,6 +30,7 @@ def map_product_to_schema(product: Product) -> ProductSchema:
         title=product.title,
         price=product.price,  # type: ignore
         main_image=main_image,
+        status=product.status,
     )
 
 
