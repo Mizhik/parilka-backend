@@ -17,4 +17,4 @@ async def get_devices(
     filters: Annotated[ProductFilterParams, Query()],
     devices_service: DevicesService = Depends(get_devices_service)
 ):
-    return await devices_service.get_devices(**filters.dict(exclude_none=True))
+    return await devices_service.get_devices(filters)

@@ -19,7 +19,7 @@ class DevicesService:
             limit=filters.limit,
             min_price=filters.min_price,
             max_price=filters.max_price,
-            manufacturer_ids=filters.manufacturer_id,
+            manufacturer_ids=filters.manufacturer_ids,
         )
         devices_schema = [map_product_to_schema(device) for device in devices]
         return ResponseSchema(data=devices_schema, message="All devices products")

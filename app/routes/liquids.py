@@ -18,4 +18,4 @@ async def get_liquids(
     filters: Annotated[ProductFilterParams, Query()],
     liquids_service: LiquidsService = Depends(get_liquids_service)
 ):
-    return await liquids_service.get_liquids(**filters.dict(exclude_none=True))
+    return await liquids_service.get_liquids(filters)

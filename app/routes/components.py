@@ -17,4 +17,4 @@ async def get_components(
     filters: Annotated[ProductFilterParams, Query()],
     components_service: ComponentsService = Depends(get_components_service)
 ):
-    return await components_service.get_components(**filters.dict(exclude_none=True))
+    return await components_service.get_components(filters)

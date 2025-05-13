@@ -19,7 +19,7 @@ class ComponentsService:
             limit=filters.limit,
             min_price=filters.min_price,
             max_price=filters.max_price,
-            manufacturer_ids=filters.manufacturer_id,
+            manufacturer_ids=filters.manufacturer_ids,
         )
         components_schema = [map_product_to_schema(component) for component in components]
         return ResponseSchema(data=components_schema, message="All components products")

@@ -17,4 +17,4 @@ async def get_hookahs(
        filters: Annotated[ProductFilterParams, Query()],
         hookahs_service: HookahsService = Depends(get_hookahs_service)
 ):
-    return await hookahs_service.get_hookahs(**filters.dict(exclude_none=True))
+    return await hookahs_service.get_hookahs(filters)

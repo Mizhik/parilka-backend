@@ -19,7 +19,7 @@ class LiquidsService:
             limit=filters.limit,
             min_price=filters.min_price,
             max_price=filters.max_price,
-            manufacturer_ids=filters.manufacturer_id
+            manufacturer_ids=filters.manufacturer_ids
         )
         liquids_schema = [map_product_to_schema(liquid) for liquid in liquids]
         return ResponseSchema(data=liquids_schema, message="All liquids products")

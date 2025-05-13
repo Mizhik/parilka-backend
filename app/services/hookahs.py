@@ -19,7 +19,7 @@ class HookahsService:
             limit=filters.limit,
             min_price=filters.min_price,
             max_price=filters.max_price,
-            manufacturer_ids=filters.manufacturer_id,
+            manufacturer_ids=filters.manufacturer_ids,
         )
         hookahs_schema = [map_product_to_schema(hookah) for hookah in hookahs]
         return ResponseSchema(data=hookahs_schema, message="All hookahs.")
