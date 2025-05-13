@@ -6,9 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.enums import ProductStatus
 from app.models.models import Product
 from app.repository.product import ProductRepository
-from app.schemas.product import ProductSchema
+from app.schemas.product import ProductDetailsSchema, ProductSchema
 from app.schemas.response import ResponseSchema
-from app.services.errors import ErrorNotFound
+from app.services.errors import ErrorNotFound, InternalServerError
 from app.utils.mappers import map_product_to_schema
 
 
@@ -21,7 +21,7 @@ class ProductService:
         products = await self.repository.get_many(
             offset=offset,
             limit=limit,
-            where=[Product.status.is_(ProductStatus.POPULAR)]
+            where=[Product.status == ProductStatus.POPULAR]
         )
         products_schema = [map_product_to_schema(product) for product in products]
         return ResponseSchema(data=products_schema, message="Popular products")
@@ -37,27 +37,44 @@ class ProductService:
         if not product:
             raise ErrorNotFound(f"Product with id: {product_id} does not exist.")
 
-        product_schema = map_product_to_schema(product)
+        product_schema = map_product_to_schema(product, True)
         print(product_schema, "37")
 
         return ResponseSchema[ProductSchema](data=product_schema, message="Product detail")
 
-    async def create_product(self, body: ProductSchema):
+    async def create_product(self, body: ProductDetailsSchema):
         values = body.dict(exclude_unset=True)
 
         created_product = await self.repository.create(values)
 
-        product_schema = ProductSchema.model_validate(created_product)
+        if not created_product:
+            raise InternalServerError()
+
+        product = await self.repository.get_one(id=created_product.id)
+        
+        if not product:
+            raise InternalServerError("Failed to get created product")
+
+        product_schema = map_product_to_schema(product, True)
 
         return ResponseSchema[ProductSchema](data=product_schema, message="Product created.")
 
-    async def edit_product(self, product_id: UUID, body: ProductSchema):
+    async def edit_product(self, product_id: UUID, body: ProductDetailsSchema):
         if not await self.repository.get_one(id=product_id):
             raise ErrorNotFound(f"Product with id: {product_id} does not exist.")
 
         values = body.dict(exclude_unset=True)
         updated_product = await self.repository.update(values, id=product_id)
-        product_schema = ProductSchema.model_validate(updated_product)
+
+        if not updated_product:
+            raise InternalServerError()
+
+        product = await self.repository.get_one(id=updated_product.id)
+        
+        if not product:
+            raise InternalServerError("Failed to get created product")
+
+        product_schema = map_product_to_schema(product, True)
 
         return ResponseSchema[ProductSchema](data=product_schema, message="Product edited")
 

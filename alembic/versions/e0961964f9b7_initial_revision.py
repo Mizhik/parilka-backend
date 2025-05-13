@@ -1,18 +1,18 @@
-"""Initial migration
+"""Initial revision
 
-Revision ID: 8cf65a138c0c
+Revision ID: e0961964f9b7
 Revises: 
-Create Date: 2025-04-08 11:23:16.025940
+Create Date: 2025-05-02 14:43:47.271130
 
 """
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+
 
 # revision identifiers, used by Alembic.
-revision: str = '8cf65a138c0c'
+revision: str = 'e0961964f9b7'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -34,15 +34,6 @@ def upgrade() -> None:
     sa.Column('create_at', sa.DateTime(), nullable=False),
     sa.Column('update_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('constructor',
-    sa.Column('tag', sa.Enum('TOP_BANNER', 'ACCORDION', name='constructortag'), nullable=False),
-    sa.Column('component_data', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('create_at', sa.DateTime(), nullable=False),
-    sa.Column('update_at', sa.DateTime(), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('tag')
     )
     op.create_table('countries',
     sa.Column('name', sa.String(length=50), nullable=False),
@@ -105,10 +96,10 @@ def upgrade() -> None:
     sa.Column('title', sa.String(length=50), nullable=False),
     sa.Column('description', sa.String(length=255), nullable=False),
     sa.Column('price', sa.DECIMAL(precision=10, scale=2), nullable=False),
+    sa.Column('discount_price', sa.DECIMAL(precision=10, scale=2), nullable=True),
     sa.Column('stock_quantity', sa.Integer(), nullable=False),
     sa.Column('is_available', sa.Boolean(), nullable=False),
-    sa.Column('is_popular', sa.Boolean(), nullable=False),
-    sa.Column('is_new', sa.Boolean(), nullable=False),
+    sa.Column('status', sa.Enum('POPULAR', 'NEW', 'DISCOUNT', 'NONE', name='productstatus'), nullable=False),
     sa.Column('category_id', sa.UUID(), nullable=False),
     sa.Column('country_of_origin_id', sa.UUID(), nullable=False),
     sa.Column('manufacturer_id', sa.UUID(), nullable=False),
@@ -122,6 +113,7 @@ def upgrade() -> None:
     )
     op.create_table('images',
     sa.Column('image_url', sa.String(length=500), nullable=False),
+    sa.Column('is_main', sa.Boolean(), nullable=False),
     sa.Column('product_id', sa.UUID(), nullable=False),
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('create_at', sa.DateTime(), nullable=False),
@@ -175,7 +167,6 @@ def downgrade() -> None:
     op.drop_table('manufacturers')
     op.drop_table('deliveries')
     op.drop_table('countries')
-    op.drop_table('constructor')
     op.drop_table('categories')
     op.drop_table('attributes')
     # ### end Alembic commands ###
