@@ -44,18 +44,19 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_DB: ${POSTGRES_DB}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
       - ./postgresql.conf:/etc/postgresql.conf
     ports:
       - ${POSTGRES_LOCAL_PORT}:${POSTGRES_PORT}
     networks:
       - app-network
 volumes:
+  postgres-data:
   cache:
 networks:
   web:
