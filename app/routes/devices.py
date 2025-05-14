@@ -6,16 +6,15 @@ from typing_extensions import Annotated
 from app.schemas.filters import ProductFilterParams
 from app.schemas.product import ProductSchema
 from app.schemas.response import ResponseSchema
-from app.services.dependencies import get_liquids_service
-from app.services.liquids import LiquidsService
+from app.services.devices import DevicesService
+from app.services.dependencies import get_devices_service
 
-
-router = APIRouter(prefix="/liquids", tags=["Liquids"])
+router = APIRouter(prefix="/devices", tags=["Devices"])
 
 
 @router.get("", response_model=ResponseSchema[List[ProductSchema]])
-async def get_liquids(
+async def get_devices(
     filters: Annotated[ProductFilterParams, Query()],
-    liquids_service: LiquidsService = Depends(get_liquids_service)
+    devices_service: DevicesService = Depends(get_devices_service)
 ):
-    return await liquids_service.get_liquids(filters)
+    return await devices_service.get_devices(filters)

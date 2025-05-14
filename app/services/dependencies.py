@@ -4,6 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.db import get_db
 from app.repository.category import CategoryRepository
 from app.repository.country import CountryRepository
+from app.repository.components import ComponentsRepository
+from app.repository.devices import DevicesRepository
+from app.repository.hookahs import HookahsRepository
 from app.repository.liquids import LiquidsRepository
 from app.repository.manufacturer import ManufacturerRepository
 from app.repository.product import ProductRepository
@@ -11,6 +14,9 @@ from app.repository.subcategory import SubCategoryRepository
 from app.repository.user import UserRepository
 from app.services.auth import AuthService
 from app.services.country import CountryService
+from app.services.components import ComponentsService
+from app.services.devices import DevicesService
+from app.services.hookahs import HookahsService
 from app.services.liquids import LiquidsService
 from app.services.main_page import MainPageService
 from app.services.manufacturer import ManufacturerService
@@ -58,3 +64,18 @@ async def get_country_service(db: AsyncSession = Depends(get_db)):
 async def get_liquids_service(db: AsyncSession = Depends(get_db)):
     liquids_service = LiquidsRepository(db)
     return LiquidsService(db, liquids_service)
+
+
+async def get_devices_service(db: AsyncSession = Depends(get_db)):
+    devices_service = DevicesRepository(db)
+    return DevicesService(db, devices_service)
+
+
+async def get_components_service(db: AsyncSession = Depends(get_db)):
+    components_service = ComponentsRepository(db)
+    return ComponentsService(db, components_service)
+
+
+async def get_hookahs_service(db: AsyncSession = Depends(get_db)):
+    hookahs_service = HookahsRepository(db)
+    return HookahsService(db, hookahs_service)

@@ -23,6 +23,10 @@ from app.routes import (
     subcategories,
     manufacturers,
     main_page,
+    devices,
+    liquids,
+    hookahs,
+    components,
 )
 from app.schemas.response import ResponseSchema
 from app.services.errors import BaseHTTPError, HTTPLoginFailed
@@ -61,6 +65,10 @@ app.include_router(subcategories.router)
 app.include_router(manufacturers.router)
 app.include_router(countries.router)
 app.include_router(main_page.router)
+app.include_router(devices.router)
+app.include_router(liquids.router)
+app.include_router(hookahs.router)
+app.include_router(components.router)
 
 
 @app.exception_handler(BaseHTTPError)

@@ -9,14 +9,14 @@ from app.repository.base_repository import BaseRepository
 from app.repository.product_filters import product_filters, apply_common_filters
 
 
-class LiquidsRepository(BaseRepository[Product]):
+class DevicesRepository(BaseRepository[Product]):
     def __init__(self, db):
         super().__init__(db=db,
                          model=Product,
                          lazyopts=[selectinload(Product.images), selectinload(Product.attributes)]
                          )
 
-    async def get_liquids(
+    async def get_devices(
             self,
             offset: Optional[int] = None,
             limit: Optional[int] = None,
@@ -28,7 +28,7 @@ class LiquidsRepository(BaseRepository[Product]):
             select(self.model)
             .distinct()
             .join(Category, Product.category)
-            .where(Category.title.ilike("liquid"))
+            .where(Category.title.ilike("device"))
         )
 
         filters = product_filters(min_price, max_price, manufacturer_ids)
