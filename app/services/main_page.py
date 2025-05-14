@@ -18,13 +18,22 @@ class MainPageService:
 
     async def get_main_page(self):
         popular = await self.product_repository.get_many(
-            limit=5, status=ProductStatus.POPULAR, order_by=[Product.create_at.desc()]
+            limit=5,
+            status=ProductStatus.POPULAR,
+            order_by=[Product.create_at.desc()],
+            distinct=True,
         )
         catalogue = await self.product_repository.get_many(
-            limit=5, status=ProductStatus.NONE, order_by=[Product.create_at.desc()]
+            limit=5,
+            status=ProductStatus.NONE,
+            order_by=[Product.create_at.desc()],
+            distinct=True,
         )
         discounts = await self.product_repository.get_many(
-            limit=5, status=ProductStatus.DISCOUNT, order_by=[Product.create_at.desc()]
+            limit=5,
+            status=ProductStatus.DISCOUNT,
+            order_by=[Product.create_at.desc()],
+            distinct=True,
         )
         res = MainPageSchema(
             popular=[map_product_to_schema(p) for p in popular],

@@ -33,6 +33,7 @@ class BaseRepository(Generic[ModelType]):
         limit: Optional[int] = None,
         lazyopts: Optional[List[ExecutableOption]] = None,
         order_by: Optional[List[ColumnExpressionArgument]] = [],
+        distinct: bool = False,
         **params,
     ) -> list[ModelType]:
         stmt = select(self.model).options(*(lazyopts or self.lazyopts_))
@@ -47,6 +48,8 @@ class BaseRepository(Generic[ModelType]):
             stmt = stmt.limit(limit)
         if order_by:
             stmt = stmt.order_by(*order_by)
+        if distinct:
+            stmt = stmt.distinct()
 
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
