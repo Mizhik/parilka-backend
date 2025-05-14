@@ -13,7 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
-from sqlalchemy.sql.operators import as_
+from sqlalchemy.types import Text
 from app.models.enums import (
     AttributeGroupEnum,
     Status,
@@ -35,6 +35,7 @@ class Product(Base):
     discount_price: Mapped[DECIMAL] = mapped_column(
         DECIMAL(precision=10, scale=2), nullable=True
     )
+    sku: Mapped[str] = mapped_column(Text, nullable=False)
     stock_quantity: Mapped[int] = mapped_column(Integer, nullable=True)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
     is_bundle: Mapped[bool] = mapped_column(Boolean, default=False)

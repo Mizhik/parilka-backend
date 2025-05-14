@@ -57,6 +57,7 @@ def map_product_to_detailed_schema(product: Product) -> ProductDetailsSchema:
         description=product.description,
         category=CategorySchema.model_validate(product.category),
         is_available=product.is_available,
+        sku=product.sku,
         stock_quantity=product.stock_quantity,
         status=product.status,
         country_of_origin_id=product.country_of_origin_id,

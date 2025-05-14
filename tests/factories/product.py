@@ -37,6 +37,7 @@ async def create_product(
 
     product = Product(
         title=faker.unique.word(),
+        sku=faker.ean8(),
         description=faker.text(max_nb_chars=100),
         price=faker.random_int(min=10, max=300),
         stock_quantity=10,

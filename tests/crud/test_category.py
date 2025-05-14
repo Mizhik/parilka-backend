@@ -38,9 +38,7 @@ async def test_create_duplicate_category(
     client: AsyncClient, category_factory: Callable[[], Awaitable[CategorySchema]]
 ):
     category = await category_factory()
-    response = await client.post(
-        "/categories/add", json={"title": category.title}
-    )
+    response = await client.post("/categories/add", json={"title": category.title})
 
     assert response.status_code == 409
 
@@ -71,7 +69,9 @@ async def test_edit_category(
 
     c = parse_response(categories, List[CategorySchema])
 
-    assert any(m.id == ct.id and original_title != ct.title for ct in c), "Edited category not present in GET categories"
+    assert any(m.id == ct.id and original_title != ct.title for ct in c), (
+        "Edited category not present in GET categories"
+    )
 
 
 @pytest.mark.asyncio
@@ -103,7 +103,9 @@ async def test_edit_not_exists_category(
 
 
 @pytest.mark.asyncio
-async def test_delete_category(client: AsyncClient, category_factory: Callable[[], Awaitable[Category]]):
+async def test_delete_category(
+    client: AsyncClient, category_factory: Callable[[], Awaitable[Category]]
+):
     category = await category_factory()
     response = await client.delete(f"/categories/delete/{category.id}")
 
@@ -113,7 +115,7 @@ async def test_delete_category(client: AsyncClient, category_factory: Callable[[
 
     m = parse_response(categories, List[CategorySchema])
 
-    assert any(ct.id != category.id for ct in m)
+    assert not any(ct.id == category.id for ct in m), "Category was not deleted"
 
 
 @pytest.mark.asyncio

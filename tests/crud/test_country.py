@@ -56,9 +56,7 @@ async def test_edit_country(
     country = await country_factory()
     original_name = country.name
     payload = {"name": "Estonia"}
-    res = await client.patch(
-        f"/countries/edit/{country.id}", json={"name": "Estonia"}
-    )
+    res = await client.patch(f"/countries/edit/{country.id}", json={"name": "Estonia"})
 
     m = parse_response(res, CountrySchema)
     assert not isinstance(m, list)
@@ -98,7 +96,9 @@ async def test_edit_non_existent(
 
 
 @pytest.mark.asyncio
-async def test_delete_country(client: AsyncClient, country_factory: Callable[[], Awaitable[Country]]):
+async def test_delete_country(
+    client: AsyncClient, country_factory: Callable[[], Awaitable[Country]]
+):
     country = await country_factory()
 
     res = await client.delete(f"/countries/delete/{country.id}")
@@ -108,7 +108,7 @@ async def test_delete_country(client: AsyncClient, country_factory: Callable[[],
 
     m = parse_response(countries, List[CountrySchema])
 
-    assert any(country.id != ct.id for ct in m)
+    assert not any(country.id == ct.id for ct in m)
 
 
 @pytest.mark.asyncio

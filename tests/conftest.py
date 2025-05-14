@@ -176,6 +176,7 @@ def product_payload():
             attributes=attributes,
             category_id=category.id,
             country_of_origin_id=country.id,
+            sku=faker.ean8(),
             description=faker.word(),
             discount_price=None,
             images=images,

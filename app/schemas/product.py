@@ -29,20 +29,21 @@ class ProductSchema(BaseModel):
 
 class ProductDetailsSchema(BaseModel):
     id: UUID
-    title: str = Field(min_length=1, max_length=50)
-    price: Decimal = Field(gt=0)
-    stock_quantity: int = Field(ge=0)
+    title: str
+    price: Decimal
+    sku: str
+    stock_quantity: int
     country_of_origin_id: UUID
     manufacturer_id: UUID
-    stock_quantity: int = Field(ge=0)
-    description: str = Field(min_length=1, max_length=255)
+    stock_quantity: int
+    description: str
     images: List[ImageSchema] = []
     attributes: Dict[AttributeGroupEnum, List[AttributeProductSchema]] = {}
-    subcategory_id: Optional[UUID] = Field(default=None, exclude=True)
+    subcategory_id: Optional[UUID]
     category: CategorySchema
-    sub_category: Optional[SubCategorySchema] = None
-    is_available: bool = Field(default=True)
-    status: StatusEnum = StatusEnum.NONE
+    sub_category: Optional[SubCategorySchema]
+    is_available: bool
+    status: StatusEnum
     bundle_items: List[ProductSchema] = []
 
     class Config:
@@ -53,6 +54,7 @@ class ProductCreateSchema(BaseModel):
     title: str = Field(min_length=1, max_length=50)
     price: Decimal = Field(gt=0)
     category_id: UUID
+    sku: str
     subcategory_id: Optional[UUID] = None
     discount_price: Optional[Decimal] = Field(default=None, gt=0)
     is_available: bool = Field(default=True)

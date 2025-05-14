@@ -96,7 +96,7 @@ async def test_edit_non_existent_manufacturer(
 
 @pytest.mark.asyncio
 async def test_delete_manufacturer(
-    client: AsyncClient, 
+    client: AsyncClient,
     manufacturer_factory: Callable[[], Awaitable[Manufacturer]],
 ):
     manufacturer = await manufacturer_factory()
@@ -108,7 +108,7 @@ async def test_delete_manufacturer(
 
     m = parse_response(manufacturers, List[ManufacturerSchema])
 
-    assert any(manufacturer.id != mfr.id for mfr in m)
+    assert not any(manufacturer.id == mfr.id for mfr in m)
 
 
 @pytest.mark.asyncio

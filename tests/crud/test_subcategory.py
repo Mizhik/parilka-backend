@@ -11,6 +11,7 @@ from tests.utils import parse_response
 
 faker = faker_.Faker()
 
+
 @pytest.mark.asyncio
 async def test_get_subcategories(
     client: AsyncClient,
@@ -51,6 +52,7 @@ async def test_create_subcategory(
         for scr in sc
     )
 
+
 @pytest.mark.asyncio
 async def test_create_non_existent_parent_subcategory(
     client: AsyncClient,
@@ -62,6 +64,7 @@ async def test_create_non_existent_parent_subcategory(
     res = await client.post("/subcategories/add", json=payload.model_dump(mode="json"))
 
     assert res.status_code == 404
+
 
 @pytest.mark.asyncio
 async def test_create_duplicate_subcategory(
@@ -75,15 +78,20 @@ async def test_create_duplicate_subcategory(
     new_subcategory = subcategory_payload(category.id)
     new_subcategory.title = subcategory.title
 
-    res = await client.post("/subcategories/add", json=new_subcategory.model_dump(mode="json"))
+    res = await client.post(
+        "/subcategories/add", json=new_subcategory.model_dump(mode="json")
+    )
 
     assert res.status_code == 409, "Subcategory with the same title added"
 
     new_subcategory2 = subcategory_payload(category.id)
     new_subcategory2.display_title = subcategory.display_title
 
-    res2 = await client.post("/subcategories/add", json=new_subcategory2.model_dump(mode="json"))
+    res2 = await client.post(
+        "/subcategories/add", json=new_subcategory2.model_dump(mode="json")
+    )
     assert res2.status_code == 409, "Subcategory with the same display title added"
+
 
 @pytest.mark.asyncio
 async def test_edit_subcategory(
@@ -95,7 +103,7 @@ async def test_edit_subcategory(
     subcategory = await subcategory_factory(category)
     original_title = subcategory.title
     original_display_title = subcategory.display_title
-    payload = {"title": faker.word(), "display_title": faker.word() }
+    payload = {"title": faker.word(), "display_title": faker.word()}
 
     res = await client.patch(f"/subcategories/edit/{subcategory.id}", json=payload)
 
@@ -119,11 +127,12 @@ async def test_edit_subcategory(
         for scr in sc
     )
 
+
 @pytest.mark.asyncio
 async def test_edit_duplicate_subcategory(
     client: AsyncClient,
     create_subcategories: Callable[[List[Category]], Awaitable[List[SubCategory]]],
-    create_categories: Callable[[], Awaitable[List[Category]]]
+    create_categories: Callable[[], Awaitable[List[Category]]],
 ):
     categories = await create_categories()
     subcategories = await create_subcategories(categories)
@@ -133,7 +142,7 @@ async def test_edit_duplicate_subcategory(
     payload = {"title": sub2.title}
 
     res = await client.patch(f"/subcategories/edit/{sub1.id}", json=payload)
-    
+
     assert res.status_code == 409
 
     payload2 = {"display_title": sub2.display_title}
@@ -142,24 +151,26 @@ async def test_edit_duplicate_subcategory(
 
     assert res2.status_code == 409
 
+
 @pytest.mark.asyncio
 async def test_edit_non_existent_parent_subcategory(
-        client: AsyncClient,
-        subcategory_payload: Callable[[UUID], SubCategorySchema]
+    client: AsyncClient, subcategory_payload: Callable[[UUID], SubCategorySchema]
 ):
     random_uuid = uuid4()
     subcategory = subcategory_payload(random_uuid)
 
-    res = await client.patch(f"/subcategories/edit/{random_uuid}", json=subcategory.model_dump(mode="json"))
+    res = await client.patch(
+        f"/subcategories/edit/{random_uuid}", json=subcategory.model_dump(mode="json")
+    )
 
     assert res.status_code == 404
 
 
 @pytest.mark.asyncio
 async def test_delete_subcategory(
-        client: AsyncClient,
-        category_factory: Callable[[], Awaitable[Category]],
-        subcategory_factory: Callable[[Category], Awaitable[SubCategory]]
+    client: AsyncClient,
+    category_factory: Callable[[], Awaitable[Category]],
+    subcategory_factory: Callable[[Category], Awaitable[SubCategory]],
 ):
     category = await category_factory()
     subcategory = await subcategory_factory(category)
@@ -172,15 +183,12 @@ async def test_delete_subcategory(
 
     sc = parse_response(subcategories, List[SubCategorySchema])
 
-    assert any(
-        subcategory.id != scr.id
-        for scr in sc
-    )
+    assert not any(subcategory.id == scr.id for scr in sc)
 
 
 @pytest.mark.asyncio
 async def test_delete_non_existend_subcategory(
-        client: AsyncClient,
+    client: AsyncClient,
 ):
     random_uuid = uuid4()
 
