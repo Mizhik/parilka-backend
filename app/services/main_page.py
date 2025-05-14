@@ -18,19 +18,19 @@ class MainPageService:
 
     async def get_main_page(self):
         popular = await self.product_repository.get_many(
-            limit=5,
+            limit=4,
             status=ProductStatus.POPULAR,
             order_by=[Product.create_at.desc()],
             distinct=True,
         )
         catalogue = await self.product_repository.get_many(
-            limit=5,
+            limit=4,
             status=ProductStatus.NONE,
             order_by=[Product.create_at.desc()],
             distinct=True,
         )
         discounts = await self.product_repository.get_many(
-            limit=5,
+            limit=4,
             status=ProductStatus.DISCOUNT,
             order_by=[Product.create_at.desc()],
             distinct=True,

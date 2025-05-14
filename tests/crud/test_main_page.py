@@ -15,6 +15,6 @@ async def test_get_main_page(client: AsyncClient):
     assert all(pr.status == ProductStatus.DISCOUNT for pr in m.discounts)
     assert all(pr.status == ProductStatus.POPULAR for pr in m.popular)
     assert all(pr.status == ProductStatus.NONE for pr in m.catalogue)
-    assert not len(m.discounts) > 5, "Too many results in discounts"
-    assert not len(m.catalogue) > 5, "Too many results in catalogue"
-    assert not len(m.popular) > 5, "Too many results in popular"
+    assert not len(m.discounts) > 4, "Too many results in discounts"
+    assert not len(m.catalogue) > 4, "Too many results in catalogue"
+    assert not len(m.popular) > 4, "Too many results in popular"
