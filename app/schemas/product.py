@@ -5,12 +5,14 @@ from typing import Dict, List, Optional, Self
 
 from app.models.enums import AttributeGroupEnum, ProductStatus as StatusEnum
 from app.schemas.bundle import BundleCreateSchema
+from app.schemas.country import CountrySchema
 from app.schemas.image import ImageCreateSchema, ImageSchema
 from app.schemas.attribute import (
     AttributeCreateSchema,
     AttributeProductSchema,
 )
 from app.schemas.category import CategorySchema
+from app.schemas.manufacturer import ManufacturerSchema
 from app.schemas.subcategory import SubCategorySchema
 
 
@@ -33,13 +35,12 @@ class ProductDetailsSchema(BaseModel):
     price: Decimal
     sku: str
     stock_quantity: int
-    country_of_origin_id: UUID
-    manufacturer_id: UUID
+    country_of_origin: CountrySchema
+    manufacturer: ManufacturerSchema
     stock_quantity: int
     description: str
     images: List[ImageSchema] = []
     attributes: Dict[AttributeGroupEnum, List[AttributeProductSchema]] = {}
-    subcategory_id: Optional[UUID]
     category: CategorySchema
     sub_category: Optional[SubCategorySchema]
     is_available: bool

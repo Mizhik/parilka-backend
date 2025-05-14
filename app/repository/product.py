@@ -1,6 +1,3 @@
-from typing import List, Optional
-from sqlalchemy import ColumnExpressionArgument
-from sqlalchemy.dialects.postgresql.base import select
 from sqlalchemy.orm import joinedload, selectinload
 
 from app.models.models import Attribute, BundleContent, Image, Product
@@ -17,6 +14,8 @@ class ProductRepository(BaseRepository[Product]):
                 selectinload(Product.attributes),
                 joinedload(Product.category),
                 selectinload(Product.bundle_items).selectinload(BundleContent.product),
+                joinedload(Product.country),
+                joinedload(Product.manufacturer),
             ],
         )
 

@@ -2,7 +2,9 @@ from collections import defaultdict
 from typing import Dict, List
 from app.models.enums import AttributeGroupEnum
 from app.models.models import Product
+from app.schemas.manufacturer import ManufacturerSchema
 from app.schemas.category import CategorySchema
+from app.schemas.country import CountrySchema
 from app.schemas.product import ProductDetailsSchema, ProductSchema
 from app.schemas.image import ImageSchema
 from app.schemas.attribute import AttributeProductSchema
@@ -60,12 +62,11 @@ def map_product_to_detailed_schema(product: Product) -> ProductDetailsSchema:
         sku=product.sku,
         stock_quantity=product.stock_quantity,
         status=product.status,
-        country_of_origin_id=product.country_of_origin_id,
-        manufacturer_id=product.manufacturer_id,
+        country_of_origin=CountrySchema.model_validate(product.country),
+        manufacturer=ManufacturerSchema.model_validate(product.manufacturer),
         images=images,
         attributes=dict(tmp_dict),
         bundle_items=bundle_items,
-        subcategory_id=product.subcategory_id,
         sub_category=SubCategorySchema.model_validate(product.subcategory)
         if product.subcategory is not None
         else None,
