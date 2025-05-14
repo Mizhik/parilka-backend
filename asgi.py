@@ -23,6 +23,7 @@ from app.routes import (
     products,
     subcategories,
     manufacturers,
+    main_page,
 )
 from app.schemas.response import ResponseSchema
 from app.services.errors import BaseHTTPError
@@ -58,6 +59,7 @@ app.include_router(categories.router)
 app.include_router(subcategories.router)
 app.include_router(manufacturers.router)
 app.include_router(countries.router)
+app.include_router(main_page.router)
 
 
 @app.exception_handler(BaseHTTPError)

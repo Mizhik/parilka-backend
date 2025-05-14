@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.models.enums import ProductStatus
 from app.models.models import Product
@@ -18,17 +18,23 @@ class ProductService:
         self.db = db
         self.repository = repository
 
-    async def get_popular_products(self, offset: Optional[int] = None, limit: Optional[int] = None):
+    async def get_popular_products(
+        self, offset: Optional[int] = None, limit: Optional[int] = None
+    ):
         products = await self.repository.get_many(
-            offset=offset,
-            limit=limit,
-            where=[Product.status == ProductStatus.POPULAR]
+            offset=offset, limit=limit, where=[Product.status == ProductStatus.POPULAR]
         )
         products_schema = [map_product_to_schema(product) for product in products]
         return ResponseSchema(data=products_schema, message="Popular products")
 
-    async def get_all_products(self, offset: Optional[int] = None, limit: Optional[int] = None):
-        products = await self.repository.get_many(offset=offset, limit=limit, lazyopts=[selectinload(Product.images)])
+    async def get_all_products(
+        self, offset: Optional[int] = None, limit: Optional[int] = None
+    ):
+        products = await self.repository.get_many(
+            offset=offset,
+            limit=limit,
+            lazyopts=[selectinload(Product.images), joinedload(Product.category)],
+        )
         products_schema = [map_product_to_schema(product) for product in products]
         return ResponseSchema(data=products_schema, message="All products")
 
@@ -50,13 +56,15 @@ class ProductService:
             raise HTTPInternalServerError()
 
         product = await self.repository.get_one(id=created_product.id)
-        
+
         if not product:
             raise HTTPInternalServerError("Failed to get created product")
 
         product_schema = map_product_to_detailed_schema(product)
 
-        return ResponseSchema[ProductDetailsSchema](data=product_schema, message="Product created.")
+        return ResponseSchema[ProductDetailsSchema](
+            data=product_schema, message="Product created."
+        )
 
     async def edit_product(self, product_id: UUID, body: ProductDetailsSchema):
         if not await self.repository.get_one(id=product_id):
@@ -69,13 +77,15 @@ class ProductService:
             raise HTTPInternalServerError()
 
         product = await self.repository.get_one(id=updated_product.id)
-        
+
         if not product:
             raise HTTPInternalServerError("Failed to get created product")
 
         product_schema = map_product_to_detailed_schema(product)
 
-        return ResponseSchema[ProductDetailsSchema](data=product_schema, message="Product edited")
+        return ResponseSchema[ProductDetailsSchema](
+            data=product_schema, message="Product edited"
+        )
 
     async def delete_product(self, product_id: UUID):
         if not await self.repository.get_one(id=product_id):

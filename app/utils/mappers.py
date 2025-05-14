@@ -32,6 +32,9 @@ def map_product_to_schema(product: Product) -> ProductSchema:
         title=product.title,
         price=product.price,  # type: ignore
         main_image=main_image,
+        is_bundle=product.is_bundle,
+        is_available=product.is_available,
+        category=CategorySchema.model_validate(product.category),
         status=product.status,
     )
 

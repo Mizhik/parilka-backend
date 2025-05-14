@@ -22,6 +22,7 @@ from app.routes import (
     products,
     subcategories,
     manufacturers,
+    main_page,
 )
 from app.schemas.response import ResponseSchema
 from app.services.errors import BaseHTTPError, HTTPLoginFailed
@@ -51,6 +52,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Router declarations
 app.include_router(healthchecker.router)
 app.include_router(auth.router)
 app.include_router(products.router)
@@ -58,6 +60,7 @@ app.include_router(categories.router)
 app.include_router(subcategories.router)
 app.include_router(manufacturers.router)
 app.include_router(countries.router)
+app.include_router(main_page.router)
 
 
 @app.exception_handler(BaseHTTPError)

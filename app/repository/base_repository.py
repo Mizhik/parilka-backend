@@ -14,18 +14,25 @@ from app.services.errors import HTTPErrorNotFound
 
 ModelType = TypeVar("ModelType", bound=Base)
 
+
 class BaseRepository(Generic[ModelType]):
-    def __init__(self, db: AsyncSession, model: Type[ModelType],  lazyopts: List[ExecutableOption] = []):
+    def __init__(
+        self,
+        db: AsyncSession,
+        model: Type[ModelType],
+        lazyopts: List[ExecutableOption] = [],
+    ):
         self.db = db
         self.model = model
-        self.lazyopts_ = lazyopts 
+        self.lazyopts_ = lazyopts
 
     async def get_many(
-        self, 
+        self,
         where: List[ColumnExpressionArgument] = [],
-        offset: Optional[int] = None, 
+        offset: Optional[int] = None,
         limit: Optional[int] = None,
         lazyopts: Optional[List[ExecutableOption]] = None,
+        order_by: Optional[List[ColumnExpressionArgument]] = [],
         **params,
     ) -> list[ModelType]:
         stmt = select(self.model).options(*(lazyopts or self.lazyopts_))
@@ -34,15 +41,19 @@ class BaseRepository(Generic[ModelType]):
             stmt = stmt.where(*where)
         if params:
             stmt = stmt.filter_by(**params)
-        if offset is not None: 
+        if offset is not None:
             stmt = stmt.offset(offset)
         if limit is not None:
             stmt = stmt.limit(limit)
+        if order_by:
+            stmt = stmt.order_by(*order_by)
 
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_one(self, where: List[ColumnExpressionArgument] = [], **params) -> ModelType | None:
+    async def get_one(
+        self, where: List[ColumnExpressionArgument] = [], **params
+    ) -> ModelType | None:
         query = select(self.model).options(*self.lazyopts_)
 
         if where:
@@ -63,10 +74,14 @@ class BaseRepository(Generic[ModelType]):
 
     async def create_unique(self, body: dict, unique_key: str):
         if await self.get_one(**{unique_key: body[unique_key]}):
-            raise DuplicateError(f"{self.model.__name__} with {unique_key} '{body[unique_key]}' exists")
+            raise DuplicateError(
+                f"{self.model.__name__} with {unique_key} '{body[unique_key]}' exists"
+            )
         return await self.create(body)
 
-    async def update(self, body: Any, where: List[ColumnExpressionArgument] = [], **params) -> ModelType | None:
+    async def update(
+        self, body: Any, where: List[ColumnExpressionArgument] = [], **params
+    ) -> ModelType | None:
         stmt = update(self.model).values(**body).returning(self.model)
 
         if where:
@@ -80,13 +95,14 @@ class BaseRepository(Generic[ModelType]):
             await self.db.commit()
         return updated_model
 
-
-    async def get_one_or_404(self, options: List[ExecutableOption] = [], **params) -> ModelType | None:
+    async def get_one_or_404(
+        self, options: List[ExecutableOption] = [], **params
+    ) -> ModelType | None:
         result = await self.get_one(options=options, **params)
         if not result:
             raise NotFoundError
         return result
-    
+
     async def delete(self, where: List[ColumnExpressionArgument] = [], **params):
         stmt = delete(self.model).filter_by(**params)
 
@@ -98,17 +114,17 @@ class BaseRepository(Generic[ModelType]):
         await self.db.execute(stmt)
         await self.db.commit()
 
-
     async def ensure_exists(self, id_: UUID):
         if not await self.get_one(id=id_):
             raise NotFoundError(f"{self.model.__name__} with id {id_} does not exist")
 
-    async def ensure_exists_and_unique(self, id_: UUID, unique_field: str, unique_value: Any):
+    async def ensure_exists_and_unique(
+        self, id_: UUID, unique_field: str, unique_value: Any
+    ):
         await self.ensure_exists(id_)
 
         conflict_filter = and_(
-            getattr(self.model, unique_field) == unique_value,
-            self.model.id != id_
+            getattr(self.model, unique_field) == unique_value, self.model.id != id_
         )
 
         if await self.get_one(where=[conflict_filter]):

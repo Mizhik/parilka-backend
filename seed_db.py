@@ -75,9 +75,10 @@ async def seed_database(
                                             "https://res.cloudinary.com/dq2bpferw/image/upload/v1742376782/%D0%90%D1%80%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D0%B7%D0%B0%D1%82%D0%BE%D1%80_Octobar_10ml_Apple_Grape_5mg_%D0%AF%D0%B1%D0%BB%D1%83%D0%BA%D0%BE_%D0%92%D0%B8%D0%BD%D0%BE%D0%B3%D1%80%D0%B0%D0%B4_cfnexe.jpg",
                                             "https://res.cloudinary.com/dq2bpferw/image/upload/v1745226365/%D1%88%D0%B0%D1%88%D0%BB%D1%8B%D0%BA_pvfyyu.jpg",
                                         ]
-                                    )
+                                    ),
+                                    is_main=True if idx == 0 else False,
                                 )
-                                for _ in range(faker.random_int(min=1, max=5))
+                                for idx in range(faker.random_int(min=1, max=5))
                             ],
                         )
                         for _ in range(faker.random_int(min=1, max=3))
@@ -100,11 +101,11 @@ def seed(
     async def main():
         if clear_db:
             logger.info("Clearing database")
-            async for session in get_db():
+            async with sessionmanager.session() as session:
                 conn = await session.connection()
                 await conn.run_sync(Base.metadata.drop_all)
                 await conn.run_sync(Base.metadata.create_all)
-                break
+                await session.commit()
 
         await seed_database(manufacturers, categories, countries, products)
 

@@ -21,6 +21,8 @@ class ProductSchema(BaseModel):
     title: str = Field(min_length=1, max_length=50)
     price: Decimal = Field(gt=0)
     main_image: Optional[ImageSchema] = None
+    is_bundle: bool
+    category: CategorySchema
     discount_price: Optional[Decimal] = Field(default=None, gt=0)
     is_available: bool = Field(default=True)
     status: StatusEnum = StatusEnum.NONE
