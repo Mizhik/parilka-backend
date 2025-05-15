@@ -1,5 +1,3 @@
-from typing import List
-from sqlalchemy import ColumnExpressionArgument, select
 from sqlalchemy.orm import joinedload, selectinload
 
 from app.models.models import Attribute, BundleContent, Image, Product

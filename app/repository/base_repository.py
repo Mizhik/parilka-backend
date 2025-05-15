@@ -117,9 +117,11 @@ class BaseRepository(Generic[ModelType]):
         await self.db.execute(stmt)
         await self.db.commit()
 
-    async def ensure_exists(self, id_: UUID):
-        if not await self.get_one(id=id_):
+    async def ensure_exists(self, id_: UUID) -> ModelType:
+        res = await self.get_one(id=id_)
+        if not res:
             raise NotFoundError(f"{self.model.__name__} with id {id_} does not exist")
+        return res
 
     async def ensure_exists_and_unique(
         self, id_: UUID, unique_field: str, unique_value: Any

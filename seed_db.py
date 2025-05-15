@@ -7,7 +7,6 @@ from app.database.db import get_db, sessionmanager
 from app.models.base_model import Base
 from app.models.enums import AttributeGroupEnum
 from app.models.models import Attribute, Image
-from app.schemas import manufacturer
 from tests.factories.manufacturer import create_manufacturer
 from tests.factories.category import create_category
 from tests.factories.country import create_country

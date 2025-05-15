@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from typing import List, Optional
 from fastapi_cache.decorator import cache
-
+from fastapi_cache import FastAPICache
 from app.schemas.product import ProductCreateSchema, ProductDetailsSchema, ProductSchema
 from app.schemas.response import ResponseSchema
 from app.services.dependencies import get_product_service
@@ -37,6 +37,14 @@ async def get_product(
     product_id: UUID, product_service: ProductService = Depends(get_product_service)
 ):
     return await product_service.get_one_product(product_id=product_id)
+
+
+@router.get("/{product_id}/similar", response_model=ResponseSchema[List[ProductSchema]])
+@cache(expire=60 * 60 * 12)
+async def get_similar_products(
+    product_id: UUID, product_service: ProductService = Depends(get_product_service)
+):
+    return await product_service.get_similar(product_id)
 
 
 @router.post("/add", response_model=ResponseSchema[ProductDetailsSchema])
