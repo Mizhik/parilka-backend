@@ -1,7 +1,9 @@
+from decimal import Decimal
 from typing import Awaitable, Callable, List
 from httpx import AsyncClient
 from pydantic import ValidationError
 import pytest
+from sqlalchemy import literal
 
 from app.models.models import Category, Country, Manufacturer, Product
 from app.schemas.attribute import AttributeCreateSchema
@@ -16,6 +18,36 @@ async def test_get_products(client: AsyncClient):
     res = await client.get("/products")
 
     parse_response(res, List[ProductSchema])
+
+
+@pytest.mark.asyncio
+async def test_get_similar(
+    client: AsyncClient,
+    product_factory,
+    manufacturer_factory: Callable[[], Awaitable[Manufacturer]],
+    category_factory: Callable[[], Awaitable[Category]],
+    country_factory: Callable[[], Awaitable[Country]],
+):
+    category = await category_factory()
+    manufacturer = await manufacturer_factory()
+    country = await country_factory()
+    product: Product = await product_factory(category, [], [], manufacturer, country)
+    for _ in range(10):
+        c = await category_factory()
+        m = await manufacturer_factory()
+        ct = await country_factory()
+        await product_factory(c, [], [], m, ct)
+
+    res = await client.get(f"/products/{product.id}/similar")
+
+    sp = parse_response(res, List[ProductSchema])
+
+    assert not any(p.price > (product.price * Decimal("1.12")) for p in sp), (  # type: ignore
+        "Got expensive product"
+    )
+    assert not any(p.price < (product.price * Decimal("0.8")) for p in sp), (  # type: ignore
+        "Got cheap product"
+    )
 
 
 @pytest.mark.asyncio

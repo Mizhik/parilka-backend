@@ -29,10 +29,10 @@ from app.schemas.response import ResponseSchema
 from app.services.errors import BaseHTTPError
 
 
-# @asynccontextmanager
-# async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-#     FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache")
-#     yield
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache")
+    yield
 
 
 app = FastAPI(
