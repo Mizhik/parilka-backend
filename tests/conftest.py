@@ -104,7 +104,7 @@ async def client(db_session: AsyncSession):
 @pytest.fixture(scope="function")
 def category_payload() -> Callable[[], CategoryCreateSchema]:
     def _create_payload():
-        return CategoryCreateSchema(title=faker.word())
+        return CategoryCreateSchema(title=faker.unique.word())
 
     return _create_payload
 

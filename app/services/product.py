@@ -44,9 +44,9 @@ class ProductService:
         products_schema = [map_product_to_schema(product) for product in products]
         return ResponseSchema(data=products_schema, message="All products")
 
-    async def get_one_product(self, product_id: UUID):
+    async def get_one_product(self, sku: str):
         try:
-            product = await self.repository.ensure_exists(product_id)
+            product = await self.repository.ensure_exists(sku, field="sku")
         except NotFoundError as e:
             raise HTTPErrorNotFound(str(e))
 

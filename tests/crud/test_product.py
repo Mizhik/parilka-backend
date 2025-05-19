@@ -80,7 +80,7 @@ async def test_create_product(
     assert len(m.images) > 0, "Images are empty"
     assert m.category is not None
 
-    products = await client.get(f"/products/{m.id}")
+    products = await client.get(f"/products/{m.sku}")
 
     pr = parse_response(products, ProductDetailsSchema)
 

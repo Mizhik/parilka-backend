@@ -66,7 +66,6 @@ class ProductCreateSchema(BaseModel):
     subcategory_id: Optional[UUID] = None
     discount_price: Optional[Decimal] = Field(default=None, gt=0)
     is_available: bool = Field(default=True)
-    is_bundle: bool = False
     status: StatusEnum = StatusEnum.NONE
     stock_quantity: int = Field(ge=0)
     country_of_origin_id: UUID

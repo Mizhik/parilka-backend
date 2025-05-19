@@ -6,11 +6,7 @@ faker = faker_.Faker()
 
 
 async def create_category(session: AsyncSession) -> Category:
-    category = Category(
-        title=faker.random_element(
-            elements=["devices", "liquids", "components", "hookah"]
-        )
-    )
+    category = Category(title=faker.unique.word())
     session.add(category)
     await session.commit()
     await session.refresh(category)

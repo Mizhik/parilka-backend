@@ -39,7 +39,7 @@ class Product(Base):
     discount_price: Mapped[DECIMAL] = mapped_column(
         DECIMAL(precision=10, scale=2), nullable=True
     )
-    sku: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    sku: Mapped[str] = mapped_column(Text, nullable=False, unique=True, index=True)
     stock_quantity: Mapped[int] = mapped_column(Integer, nullable=True)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
     bundle_type: Mapped[BundleTypeEnum] = mapped_column(

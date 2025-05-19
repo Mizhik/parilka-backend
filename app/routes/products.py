@@ -31,12 +31,12 @@ async def get_products(
     return await product_service.get_all_products(offset=offset, limit=limit)
 
 
-@router.get("/{product_id}", response_model=ResponseSchema[ProductDetailsSchema])
+@router.get("/{sku}", response_model=ResponseSchema[ProductDetailsSchema])
 @cache(expire=60 * 2)
 async def get_product(
-    product_id: UUID, product_service: ProductService = Depends(get_product_service)
+    sku: str, product_service: ProductService = Depends(get_product_service)
 ):
-    return await product_service.get_one_product(product_id=product_id)
+    return await product_service.get_one_product(sku)
 
 
 @router.get("/{product_id}/similar", response_model=ResponseSchema[List[ProductSchema]])
