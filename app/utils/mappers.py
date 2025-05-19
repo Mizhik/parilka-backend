@@ -31,6 +31,7 @@ def map_product_to_schema(product: Product) -> ProductSchema:
         id=product.id,
         title=product.title,
         price=product.price,  # type: ignore
+        sku=product.sku,
         main_image=main_image,
         bundle_type=product.bundle_type,
         discount_price=product.discount_price,  # type: ignore

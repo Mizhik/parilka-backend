@@ -16,6 +16,7 @@ class ProductRepository(BaseRepository[Product]):
                 selectinload(Product.bundle_items).selectinload(BundleContent.product),
                 joinedload(Product.country),
                 joinedload(Product.manufacturer),
+                joinedload(Product.subcategory),
             ],
         )
 

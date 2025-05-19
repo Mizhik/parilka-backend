@@ -22,14 +22,15 @@ from app.schemas.subcategory import SubCategorySchema
 
 class ProductSchema(BaseModel):
     id: UUID
-    title: str = Field(min_length=1, max_length=50)
-    price: Decimal = Field(gt=0)
+    title: str
+    price: Decimal
     main_image: Optional[ImageSchema] = None
     bundle_type: BundleTypeEnum
     category: CategorySchema
-    discount_price: Optional[Decimal] = Field(default=None, gt=0)
-    is_available: bool = Field(default=True)
-    status: StatusEnum = StatusEnum.NONE
+    discount_price: Optional[Decimal]
+    is_available: bool
+    status: StatusEnum
+    sku: str
 
     class Config:
         from_attributes = True
