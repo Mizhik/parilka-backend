@@ -3,7 +3,11 @@ from decimal import Decimal
 from pydantic import BaseModel, Field, model_validator
 from typing import Dict, List, Optional, Self
 
-from app.models.enums import AttributeGroupEnum, ProductStatus as StatusEnum
+from app.models.enums import (
+    AttributeGroupEnum,
+    BundleTypeEnum,
+    ProductStatus as StatusEnum,
+)
 from app.schemas.bundle import BundleCreateSchema
 from app.schemas.country import CountrySchema
 from app.schemas.image import ImageCreateSchema, ImageSchema
@@ -21,7 +25,7 @@ class ProductSchema(BaseModel):
     title: str = Field(min_length=1, max_length=50)
     price: Decimal = Field(gt=0)
     main_image: Optional[ImageSchema] = None
-    is_bundle: bool
+    bundle_type: BundleTypeEnum
     category: CategorySchema
     discount_price: Optional[Decimal] = Field(default=None, gt=0)
     is_available: bool = Field(default=True)
@@ -47,6 +51,7 @@ class ProductDetailsSchema(BaseModel):
     sub_category: Optional[SubCategorySchema]
     is_available: bool
     status: StatusEnum
+    bundle_type: BundleTypeEnum
     bundle_items: List[ProductSchema] = []
 
     class Config:

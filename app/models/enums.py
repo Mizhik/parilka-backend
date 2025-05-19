@@ -5,6 +5,7 @@ class Role(Enum):
     ADMIN = "admin"
     WORKER = "worker"
 
+
 class Status(Enum):
     NEW = "new"
     PAID = "paid"
@@ -12,13 +13,16 @@ class Status(Enum):
     COMPLETED = "completed"
     CANCELED = "canceled"
 
+
 class Payment(Enum):
-    CARD = 'card'
-    CASH = 'cash'
+    CARD = "card"
+    CASH = "cash"
+
 
 class Delivery(Enum):
-    NOVAPOSHTA = 'novaposhta'
-    UKRPOSHTA = 'ukrposhta'
+    NOVAPOSHTA = "novaposhta"
+    UKRPOSHTA = "ukrposhta"
+
 
 class ProductStatus(str, Enum):
     POPULAR = "popular"
@@ -26,10 +30,13 @@ class ProductStatus(str, Enum):
     DISCOUNT = "discount"
     NONE = "none"
 
+
 class AttributeGroupEnum(str, Enum):
-    TASTE = "taste",
-    VOLUME = "volume",
-    COUNTRY = "country",
-    COLOR = "color",
-    TASTE_GROUP = "tasteGroup",
-    BRAND = "brand"
+    TASTE = "taste"
+    VOLUME = "volume"
+    COLOR = "color"
+
+
+class BundleTypeEnum(str, Enum):
+    NONE = "none"
+    DIY = "diy"

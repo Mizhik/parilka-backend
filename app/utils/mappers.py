@@ -32,7 +32,7 @@ def map_product_to_schema(product: Product) -> ProductSchema:
         title=product.title,
         price=product.price,  # type: ignore
         main_image=main_image,
-        is_bundle=product.is_bundle,
+        bundle_type=product.bundle_type,
         discount_price=product.discount_price,  # type: ignore
         is_available=product.is_available,
         category=CategorySchema.model_validate(product.category),
@@ -62,6 +62,7 @@ def map_product_to_detailed_schema(product: Product) -> ProductDetailsSchema:
         price=product.price,  # type: ignore
         description=product.description,
         category=CategorySchema.model_validate(product.category),
+        bundle_type=product.bundle_type,
         is_available=product.is_available,
         sku=product.sku,
         stock_quantity=product.stock_quantity,

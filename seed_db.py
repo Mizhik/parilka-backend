@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 import asyncio
 import logging
+import random
+from sqlalchemy import Select, select
 import typer
 import faker as faker_
 from app.database.db import get_db, sessionmanager
 from app.models.base_model import Base
 from app.models.enums import AttributeGroupEnum
-from app.models.models import Attribute, Image
+from app.models.models import Attribute, Category, Image
 from tests.factories.manufacturer import create_manufacturer
 from tests.factories.category import create_category
 from tests.factories.country import create_country
 from tests.factories.product import create_product
+from tests.factories.subcategory import create_subcategory
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,7 +24,7 @@ app = typer.Typer()
 
 async def seed_database(
     num_manufacturers: int = 10,
-    num_categories: int = 15,
+    num_subcategories: int = 15,
     num_countries: int = 5,
     num_products: int = 15,
 ):
@@ -34,11 +37,17 @@ async def seed_database(
                 manufacturer = await create_manufacturer(session)
                 manufacturers.append(manufacturer)
 
-            logger.info(f"Creating {num_categories} categories")
-            categories = []
-            for _ in range(num_categories):
-                category = await create_category(session)
-                categories.append(category)
+            categories_names = ["liquids", "components", "devices", "hookah"]
+            stmt = select(Category).where(Category.title.in_(categories_names))
+            result = await session.scalars(stmt)
+            categories = result.all()
+            logger.info(f"Creating {num_subcategories} categories")
+            subcategories = []
+            for _ in range(num_subcategories):
+                category = await create_subcategory(
+                    session, category=random.choice(categories)
+                )
+                subcategories.append(category)
 
             logger.info(f"Creating {num_countries} countries")
             countries = []
@@ -52,6 +61,7 @@ async def seed_database(
                     session,
                     country=faker.random_element(elements=countries),
                     category=faker.random_element(elements=categories),
+                    subcategory=faker.random_element(elements=subcategories),
                     manufacturer=faker.random_element(elements=manufacturers),
                     attributes=[
                         Attribute(  # type: ignore
@@ -104,6 +114,10 @@ def seed(
                 conn = await session.connection()
                 await conn.run_sync(Base.metadata.drop_all)
                 await conn.run_sync(Base.metadata.create_all)
+                session.add(Category(title="devices"))
+                session.add(Category(title="liquids"))
+                session.add(Category(title="hookah"))
+                session.add(Category(title="components"))
                 await session.commit()
 
         await seed_database(manufacturers, categories, countries, products)

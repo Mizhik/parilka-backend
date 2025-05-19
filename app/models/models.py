@@ -7,15 +7,19 @@ from sqlalchemy import (
     Boolean,
     Enum,
     ForeignKey,
+    Index,
     Integer,
     String,
     DECIMAL,
+    desc,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.types import Text
 from app.models.enums import (
     AttributeGroupEnum,
+    BundleTypeEnum,
     Status,
     Payment as PaymentEnum,
     Delivery as DeliveryEnum,
@@ -38,7 +42,11 @@ class Product(Base):
     sku: Mapped[str] = mapped_column(Text, nullable=False)
     stock_quantity: Mapped[int] = mapped_column(Integer, nullable=True)
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
-    is_bundle: Mapped[bool] = mapped_column(Boolean, default=False)
+    bundle_type: Mapped[BundleTypeEnum] = mapped_column(
+        "bundle_type",
+        Enum(BundleTypeEnum),
+        default=BundleTypeEnum.NONE.value,
+    )
     status: Mapped[StatusEnum] = mapped_column(
         "status", Enum(StatusEnum), default=StatusEnum.NONE
     )
@@ -100,6 +108,22 @@ class Product(Base):
         back_populates="bundle",
         cascade="all, delete-orphan",
         lazy="selectin",
+    )
+
+    __table_args__ = (
+        Index(
+            "idx_products_cat_available_created",
+            "subcategory_id",
+            "is_available",
+            desc("create_at"),
+        ),
+        Index("idx_products_manufacturer_id", "manufacturer_id"),
+        Index(
+            "idx_products_available_only",
+            "category_id",
+            desc("create_at"),
+            postgresql_where=text("is_available = TRUE"),
+        ),
     )
 
     @model_validator(mode="after")
@@ -200,7 +224,7 @@ class Attribute(Base):
 class Category(Base):
     __tablename__ = "categories"
 
-    title: Mapped[str] = mapped_column(String(50), nullable=False)
+    title: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
 
     products: Mapped[list["Product"]] = relationship(
         "Product",
@@ -213,7 +237,7 @@ class Category(Base):
 class SubCategory(Base):
     __tablename__ = "subcategories"
 
-    title: Mapped[str] = mapped_column(String(50), nullable=False)
+    title: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     display_title: Mapped[str] = mapped_column(String(150), nullable=False)
 
     parent_id: Mapped[UUID] = mapped_column(
